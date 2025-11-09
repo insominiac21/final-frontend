@@ -47,14 +47,6 @@ const AdminDashboard = () => {
       pending: complaints.filter((c) => c.dept_id === 'MESS' && c.status === 'pending').length,
     },
     {
-      name: 'Transport Management',
-      icon: 'fa-bus',
-      description: 'Manage schedules, bookings, and auto services',
-      route: '/admin/transport',
-      className: 'transport',
-      pending: complaints.filter((c) => c.dept_id === 'TRANSPORT' && c.status === 'pending').length,
-    },
-    {
       name: 'Network Management',
       icon: 'fa-wifi',
       description: 'Monitor connectivity issues and IT complaints',

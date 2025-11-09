@@ -14,7 +14,6 @@ const StudentNetwork = () => {
   const [complaintForm, setComplaintForm] = useState({
     title: '',
     description: '',
-    severity: 'medium',
     media: null,
   });
 
@@ -25,9 +24,9 @@ const StudentNetwork = () => {
 
   const loadComplaints = async () => {
     try {
-      const response = await complaintAPI.getMyComplaints(user?.user_id);
+      const response = await complaintAPI.getMyComplaints(user?.user_id, 'network');
       if (response.success) {
-        setMyComplaints(response.data.filter((c) => c.dept_id === 'NETWORK'));
+        setMyComplaints(response.data);
       }
     } catch {
       // Handle error
@@ -39,29 +38,30 @@ const StudentNetwork = () => {
     setLoading(true);
 
     try {
-      const complaintData = {
-        student_id: user?.user_id,
-        title: complaintForm.title,
-        description: complaintForm.description,
-        severity: complaintForm.severity,
-        dept_id: 'NETWORK',
-      };
-
-      const response = await complaintAPI.createComplaint(complaintData);
+      // Combine title and description for Flask backend
+      const complaintText = `${complaintForm.title}\n\n${complaintForm.description}`;
+      
+      const response = await complaintAPI.submitComplaint(complaintText, 'network');
 
       if (response.success) {
-        alert(`Complaint submitted successfully! Complaint ID: ${response.data.complaint_id}`);
+        const complaintData = response.data;
+        const severity = complaintData.student_view?.severity || 3;
+        const departments = complaintData.admin_view?.departments || complaintData.student_view?.departments || [];
+        
+        alert(`Complaint submitted successfully!\n\nComplaint ID: ${complaintData.id}\nAI-Assessed Severity: ${severity}/5\nDepartments: ${departments.join(', ')}\n\nThe system has automatically categorized your complaint and will notify the relevant departments.`);
+        
         setShowComplaintModal(false);
         loadComplaints();
         setComplaintForm({
           title: '',
           description: '',
-          severity: 'medium',
           media: null,
         });
+      } else {
+        throw new Error(response.error || 'Failed to submit complaint');
       }
-    } catch {
-      alert('Failed to submit complaint. Please try again.');
+    } catch (error) {
+      alert(`Failed to submit complaint: ${error.message}\n\nPlease make sure the Flask backend is running on http://localhost:5000`);
     } finally {
       setLoading(false);
     }
@@ -77,12 +77,10 @@ const StudentNetwork = () => {
   };
 
   const getSeverityBadgeClass = (severity) => {
-    const severityMap = {
-      low: 'severity-low',
-      medium: 'severity-medium',
-      high: 'severity-high',
-    };
-    return severityMap[severity] || 'severity-medium';
+    // Severity is now 1-5 scale
+    if (severity >= 4) return 'severity-high';
+    if (severity >= 3) return 'severity-medium';
+    return 'severity-low';
   };
 
   return (
@@ -300,31 +298,38 @@ const StudentNetwork = () => {
                       </td>
                     </tr>
                   ) : (
-                    myComplaints.map((complaint) => (
-                      <tr key={complaint.complaint_id}>
-                        <td>{complaint.complaint_id}</td>
-                        <td>{complaint.title}</td>
-                        <td>
-                          <span className={getSeverityBadgeClass(complaint.severity)}>
-                            {complaint.severity}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${getStatusBadgeClass(complaint.status)}`}>
-                            {complaint.status}
-                          </span>
-                        </td>
-                        <td>{new Date(complaint.created_at).toLocaleDateString()}</td>
-                        <td>
-                          <button
-                            className="btn btn-primary"
-                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
-                          >
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    myComplaints.map((complaint) => {
+                      const studentView = complaint.student_view || complaint;
+                      const severity = studentView.severity || 3;
+                      const status = studentView.status || 'Pending';
+                      const timestamp = studentView.timestamp || complaint.timestamp || new Date().toISOString();
+                      
+                      return (
+                        <tr key={complaint.id || complaint.complaint_id}>
+                          <td>{complaint.id || complaint.complaint_id}</td>
+                          <td>{studentView.complaint?.split('\n')[0] || complaint.title || 'N/A'}</td>
+                          <td>
+                            <span className={getSeverityBadgeClass(severity)}>
+                              {severity}/5
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${getStatusBadgeClass(status.toLowerCase().replace(' ', '_'))}`}>
+                              {status}
+                            </span>
+                          </td>
+                          <td>{new Date(timestamp).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className="btn btn-primary"
+                              style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -364,17 +369,11 @@ const StudentNetwork = () => {
             ></textarea>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="severity">Severity *</label>
-            <select
-              id="severity"
-              value={complaintForm.severity}
-              onChange={(e) => setComplaintForm({ ...complaintForm, severity: e.target.value })}
-            >
-              <option value="low">Low - Minor inconvenience</option>
-              <option value="medium">Medium - Affecting work</option>
-              <option value="high">High - Complete network failure</option>
-            </select>
+          <div className="alert alert-info" style={{ fontSize: '0.9rem', margin: '1rem 0' }}>
+            <i className="fas fa-info-circle"></i>
+            <span>
+              <strong>Note:</strong> The severity of your complaint will be automatically assessed by our AI system based on your description.
+            </span>
           </div>
 
           <div className="form-group">

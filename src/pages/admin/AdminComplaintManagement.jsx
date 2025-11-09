@@ -31,12 +31,6 @@ const AdminComplaintManagement = () => {
       dept_id: 'MESS',
       color: '#ff6b6b',
     },
-    transport: {
-      name: 'Transport Management',
-      icon: 'fa-bus',
-      dept_id: 'TRANSPORT',
-      color: '#4ecdc4',
-    },
     network: {
       name: 'Network Management',
       icon: 'fa-wifi',
@@ -71,13 +65,28 @@ const AdminComplaintManagement = () => {
     try {
       const response = await complaintAPI.getAllComplaints();
       if (response.success) {
-        const deptComplaints = response.data.filter((c) => {
-          if (currentDept.dept_id === 'MAINTENANCE') {
-            return ['MAINTENANCE', 'HOUSEKEEPING', 'WATER'].includes(c.dept_id);
+        // Filter complaints based on AI-categorized departments
+        const filtered = response.data.filter((c) => {
+          const departments = c.admin_view?.departments || c.student_view?.departments || [];
+          const deptStr = departments.join(' ').toLowerCase();
+          
+          if (currentDept.dept_id === 'MESS') {
+            return deptStr.includes('mess') || deptStr.includes('dining');
+          } else if (currentDept.dept_id === 'MAINTENANCE') {
+            return deptStr.includes('maintenance') || 
+                   deptStr.includes('housekeeping') || 
+                   deptStr.includes('water') ||
+                   deptStr.includes('plumbing') ||
+                   deptStr.includes('electrical');
+          } else if (currentDept.dept_id === 'NETWORK') {
+            return deptStr.includes('network') || deptStr.includes('it');
+          } else if (currentDept.dept_id === 'TRANSPORT') {
+            return deptStr.includes('transport');
           }
-          return c.dept_id === currentDept.dept_id;
+          return false;
         });
-        setComplaints(deptComplaints);
+        
+        setComplaints(filtered);
       }
     } catch {
       alert('Failed to load complaints');
@@ -151,11 +160,23 @@ const AdminComplaintManagement = () => {
     let filtered = [...complaints];
     
     if (statusFilter !== 'all') {
-      filtered = filtered.filter((c) => c.status === statusFilter);
+      filtered = filtered.filter((c) => {
+        const status = c.student_view?.status || c.status || 'Pending';
+        return status.toLowerCase().replace(' ', '_') === statusFilter;
+      });
     }
     
     if (severityFilter !== 'all') {
-      filtered = filtered.filter((c) => c.severity === severityFilter);
+      filtered = filtered.filter((c) => {
+        const severity = c.admin_view?.severity || c.student_view?.severity || 3;
+        
+        // Map 1-5 scale to low/medium/high
+        if (severityFilter === 'low') return severity <= 2;
+        if (severityFilter === 'medium') return severity === 3;
+        if (severityFilter === 'high') return severity >= 4;
+        
+        return true;
+      });
     }
     
     setFilteredComplaints(filtered);
@@ -167,12 +188,18 @@ const AdminComplaintManagement = () => {
       if (response.success) {
         alert('Status updated successfully');
         loadComplaints();
-        if (selectedComplaint?.complaint_id === complaintId) {
-          setSelectedComplaint({ ...selectedComplaint, status: newStatus });
+        if (selectedComplaint?.id === complaintId) {
+          setSelectedComplaint({ 
+            ...selectedComplaint, 
+            student_view: {
+              ...selectedComplaint.student_view,
+              status: newStatus
+            }
+          });
         }
       }
-    } catch {
-      alert('Failed to update status');
+    } catch (error) {
+      alert(`Failed to update status: ${error.message}`);
     }
   };
 
@@ -186,19 +213,26 @@ const AdminComplaintManagement = () => {
   };
 
   const getSeverityBadgeClass = (severity) => {
-    const severityMap = {
-      low: 'severity-low',
-      medium: 'severity-medium',
-      high: 'severity-high',
-    };
-    return severityMap[severity] || 'severity-medium';
+    // Severity is now 1-5 scale
+    if (severity >= 4) return 'severity-high';
+    if (severity >= 3) return 'severity-medium';
+    return 'severity-low';
   };
 
   const stats = {
     total: complaints.length,
-    pending: complaints.filter((c) => c.status === 'pending').length,
-    inProgress: complaints.filter((c) => c.status === 'in_progress').length,
-    resolved: complaints.filter((c) => c.status === 'resolved').length,
+    pending: complaints.filter((c) => {
+      const status = c.student_view?.status || c.status || 'Pending';
+      return status.toLowerCase() === 'pending';
+    }).length,
+    inProgress: complaints.filter((c) => {
+      const status = c.student_view?.status || c.status || 'Pending';
+      return status.toLowerCase().replace(' ', '_') === 'in_progress';
+    }).length,
+    resolved: complaints.filter((c) => {
+      const status = c.student_view?.status || c.status || 'Pending';
+      return status.toLowerCase() === 'resolved';
+    }).length,
   };
 
   return (
@@ -378,36 +412,46 @@ const AdminComplaintManagement = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredComplaints.map((complaint) => (
-                      <tr key={complaint.complaint_id}>
-                        <td>{complaint.complaint_id}</td>
-                        <td>{complaint.student_id}</td>
-                        <td>{complaint.title}</td>
-                        <td>
-                          <span className={getSeverityBadgeClass(complaint.severity)}>
-                            {complaint.severity}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${getStatusBadgeClass(complaint.status)}`}>
-                            {complaint.status}
-                          </span>
-                        </td>
-                        <td>{new Date(complaint.created_at).toLocaleDateString()}</td>
-                        <td>
-                          <button
-                            className="btn btn-primary"
-                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
-                            onClick={() => {
-                              setSelectedComplaint(complaint);
-                              setShowDetailModal(true);
-                            }}
-                          >
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    filteredComplaints.map((complaint) => {
+                      const adminView = complaint.admin_view || {};
+                      const studentView = complaint.student_view || {};
+                      const severity = adminView.severity || studentView.severity || 3;
+                      const status = studentView.status || 'Pending';
+                      const timestamp = adminView.timestamp || studentView.timestamp || new Date().toISOString();
+                      const complaintText = adminView.complaint || studentView.complaint || 'N/A';
+                      const title = complaintText.split('\n')[0] || 'N/A';
+                      
+                      return (
+                        <tr key={complaint.id}>
+                          <td>{complaint.id}</td>
+                          <td>{complaint.student_id || 'N/A'}</td>
+                          <td>{title}</td>
+                          <td>
+                            <span className={getSeverityBadgeClass(severity)}>
+                              {severity}/5
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${getStatusBadgeClass(status.toLowerCase().replace(' ', '_'))}`}>
+                              {status}
+                            </span>
+                          </td>
+                          <td>{new Date(timestamp).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className="btn btn-primary"
+                              style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
+                              onClick={() => {
+                                setSelectedComplaint(complaint);
+                                setShowDetailModal(true);
+                              }}
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -425,67 +469,128 @@ const AdminComplaintManagement = () => {
         }}
         title={<><i className="fas fa-info-circle"></i> Complaint Details</>}
       >
-        {selectedComplaint && (
-          <div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Complaint ID:</strong> {selectedComplaint.complaint_id}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Student ID:</strong> {selectedComplaint.student_id}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Title:</strong> {selectedComplaint.title}
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Description:</strong>
-              <p style={{ marginTop: '0.5rem', color: '#666' }}>{selectedComplaint.description}</p>
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Severity:</strong>{' '}
-              <span className={getSeverityBadgeClass(selectedComplaint.severity)}>
-                {selectedComplaint.severity}
-              </span>
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Current Status:</strong>{' '}
-              <span className={`status-badge ${getStatusBadgeClass(selectedComplaint.status)}`}>
-                {selectedComplaint.status}
-              </span>
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>Date:</strong> {new Date(selectedComplaint.created_at).toLocaleString()}
-            </div>
+        {selectedComplaint && (() => {
+          const adminView = selectedComplaint.admin_view || {};
+          const studentView = selectedComplaint.student_view || {};
+          const severity = adminView.severity || studentView.severity || 3;
+          const status = studentView.status || 'Pending';
+          const timestamp = adminView.timestamp || studentView.timestamp || new Date().toISOString();
+          const complaintText = adminView.complaint || studentView.complaint || 'N/A';
+          const summary = adminView.summary || '';
+          const departments = adminView.departments || studentView.departments || [];
+          const officerBrief = adminView.officer_brief || '';
+          const suggestions = studentView.suggestions || [];
+          
+          return (
+            <div>
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>Complaint ID:</strong> {selectedComplaint.id}
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>Institute:</strong> {adminView.institute || 'IIIT Nagpur'}
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>Complaint:</strong>
+                <p style={{ marginTop: '0.5rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>
+                  {complaintText}
+                </p>
+              </div>
+              {summary && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>AI Summary:</strong>
+                  <p style={{ marginTop: '0.5rem', color: '#666', fontStyle: 'italic' }}>{summary}</p>
+                </div>
+              )}
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>AI-Assessed Severity:</strong>{' '}
+                <span className={getSeverityBadgeClass(severity)}>
+                  {severity}/5
+                </span>
+                <small style={{ marginLeft: '0.5rem', color: '#666' }}>
+                  (1=Minor, 5=Critical)
+                </small>
+              </div>
+              {departments.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>Departments Assigned:</strong>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    {departments.map((dept, idx) => (
+                      <span key={idx} style={{ 
+                        display: 'inline-block',
+                        padding: '0.3rem 0.8rem',
+                        margin: '0.2rem',
+                        background: '#e3f2fd',
+                        borderRadius: '12px',
+                        fontSize: '0.9rem'
+                      }}>
+                        {dept}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {officerBrief && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>Officer Brief:</strong>
+                  <p style={{ marginTop: '0.5rem', padding: '1rem', background: '#fff3cd', borderRadius: '8px' }}>
+                    {officerBrief}
+                  </p>
+                </div>
+              )}
+              {suggestions.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <strong>AI Suggestions for Student:</strong>
+                  <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
+                    {suggestions.map((suggestion, idx) => (
+                      <li key={idx} style={{ marginBottom: '0.5rem', color: '#666' }}>{suggestion}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>Current Status:</strong>{' '}
+                <span className={`status-badge ${getStatusBadgeClass(status.toLowerCase().replace(' ', '_'))}`}>
+                  {status}
+                </span>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>Date:</strong> {new Date(timestamp).toLocaleString()}
+              </div>
 
-            <hr style={{ margin: '1.5rem 0' }} />
+              <hr style={{ margin: '1.5rem 0' }} />
 
-            <div className="form-group">
-              <label>Update Status</label>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button
-                  className="btn btn-warning"
-                  onClick={() => handleUpdateStatus(selectedComplaint.complaint_id, 'pending')}
-                  disabled={selectedComplaint.status === 'pending'}
-                >
-                  Mark Pending
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleUpdateStatus(selectedComplaint.complaint_id, 'in_progress')}
-                  disabled={selectedComplaint.status === 'in_progress'}
-                >
-                  Mark In Progress
-                </button>
-                <button
-                  className="btn btn-success"
-                  onClick={() => handleUpdateStatus(selectedComplaint.complaint_id, 'resolved')}
-                  disabled={selectedComplaint.status === 'resolved'}
-                >
-                  Mark Resolved
-                </button>
+              <div className="form-group">
+                <label><strong>Update Status</strong></label>
+                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                  Update the complaint status to keep students informed about progress.
+                </p>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button
+                    className="btn btn-warning"
+                    onClick={() => handleUpdateStatus(selectedComplaint.id, 'Pending')}
+                    disabled={status === 'Pending'}
+                  >
+                    <i className="fas fa-clock"></i> Mark Pending
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleUpdateStatus(selectedComplaint.id, 'In Progress')}
+                    disabled={status === 'In Progress'}
+                  >
+                    <i className="fas fa-spinner"></i> Mark In Progress
+                  </button>
+                  <button
+                    className="btn btn-success"
+                    onClick={() => handleUpdateStatus(selectedComplaint.id, 'Resolved')}
+                    disabled={status === 'Resolved'}
+                  >
+                    <i className="fas fa-check-circle"></i> Mark Resolved
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
 
       <Footer />
