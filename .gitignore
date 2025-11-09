@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Service account and secrets
+service_account.json
+.env
+.env.local
+.env.production

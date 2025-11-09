@@ -2,11 +2,13 @@ import { useState} from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/shared/Navbar';
 import Footer from '../../components/shared/Footer';
+import Chatbot from '../../components/shared/Chatbot';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const [showFAQ, setShowFAQ] = useState(false);
   const [openFAQIndex, setOpenFAQIndex] = useState(null);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const amenities = [
     {
@@ -114,9 +116,16 @@ const StudentDashboard = () => {
       </div>
 
       {/* Chatbot Float */}
-      <div className="chatbot-float" onClick={() => setShowFAQ(true)}>
-        <i className="fas fa-comments"></i>
-      </div>
+      <button 
+        className="chatbot-float-btn" 
+        onClick={() => setShowChatbot(true)}
+        aria-label="Open help desk chatbot"
+      >
+        <i className="fas fa-robot"></i>
+      </button>
+
+      {/* Chatbot */}
+      <Chatbot isOpen={showChatbot} onClose={() => setShowChatbot(false)} />
 
       {/* FAQ Modal */}
       {showFAQ && (
