@@ -28,7 +28,11 @@ const StudentMess = () => {
     try {
       const response = await axios.get(`${FLASK_API}/complaints`);
       if (Array.isArray(response.data)) {
-        setMyComplaints(response.data);
+        // Filter only Mess & Dining complaints
+        const messComplaints = response.data.filter(complaint => 
+          complaint.admin_view?.departments?.includes("Mess & Dining")
+        );
+        setMyComplaints(messComplaints);
       }
     } catch (error) {
       console.error('Error loading complaints:', error);

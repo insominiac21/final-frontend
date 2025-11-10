@@ -1,1 +1,78 @@
-[]
+[
+  {
+    "id": 1762782662855,
+    "student_view": {
+      "complaint": "room walls are not painted",
+      "timestamp": "2025-11-10T13:50:49.543331+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-10T13:50:49.543331+00:00",
+      "severity": 1,
+      "summary": "The room walls lack paint.",
+      "complaint": "room walls are not painted",
+      "departments": [
+        "Maintenance",
+        "Housekeeping"
+      ],
+      "departments_id": [
+        "D03",
+        "D02"
+      ],
+      "contacts": {
+        "Maintenance": "maintenance@iiit-nagpur.ac.in",
+        "Housekeeping": "housekeeping@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I understand your concern about the room walls not being painted. While the Maintenance department reviews your complaint, here are a few suggestions that may help:",
+        "If the unpainted walls are causing any health issues, such as dust or mold, please consider speaking with our hostel wardens to see if temporary arrangements can be made for you to stay in a different room until the issue is resolved.",
+        "You can also reach out to your class representatives or student council members to see if they can escalate the issue and provide any additional support or guidance.",
+        "In the meantime, if you're experiencing any discomfort or distraction due to the unpainted walls, you may want to consider studying or relaxing in one of our common areas, such as the library or student lounge, which are well-maintained and comfortable.",
+        "I understand your concern about the room walls not being painted, and I appreciate you bringing this to our attention. While the Housekeeping department reviews your complaint, here are some suggestions that may help:",
+        "Please take some clear photos of the room walls from different angles to document the current condition, which can be shared with the Housekeeping team to expedite the process.",
+        "You can also consider speaking with your floor warden or hostel administrator to see if they have any temporary solutions, such as providing a fresh coat of paint for the most affected areas.",
+        "If the unpainted walls are causing any discomfort or disturbance, you may want to request a temporary room change until the painting work is completed, and we can assist you with exploring this option."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding The room walls lack paint.. It is rated 1/5 in severity and forwarded to the Maintenance, Housekeeping department(s)."
+    }
+  },
+  {
+    "id": 1762783466154,
+    "student_view": {
+      "complaint": "8th floor washroom is clogged",
+      "timestamp": "2025-11-10T14:04:20.352337+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-10T14:04:20.352337+00:00",
+      "severity": 4,
+      "summary": "The 8th floor washroom is clogged.",
+      "complaint": "8th floor washroom is clogged",
+      "departments": [
+        "Housekeeping",
+        "Maintenance"
+      ],
+      "departments_id": [
+        "D02",
+        "D03"
+      ],
+      "contacts": {
+        "Housekeeping": "housekeeping@iiit-nagpur.ac.in",
+        "Maintenance": "maintenance@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I'm so sorry to hear that the 8th floor washroom is clogged. We appreciate you bringing this to our attention. While the Housekeeping department reviews your complaint, here are a few suggestions that may help:",
+        "If the clog is causing water to overflow, please inform your nearby friends and classmates to avoid using the washroom until it's fixed to prevent any further damage or mess.",
+        "You can also consider using the washrooms on other floors temporarily, as we have multiple facilities available in the building.",
+        "If you're in urgent need of a washroom, you can reach out to the Housekeeping department directly to request a priority resolution or a temporary alternative arrangement.",
+        "I'm so sorry to hear that the 8th floor washroom is clogged. We're here to help and will get it sorted out as soon as possible. While the Maintenance department reviews your complaint, here are a few suggestions that might be helpful:",
+        "Check if there are any alternative washrooms on the same floor or nearby floors that you can use temporarily, to minimize any inconvenience.",
+        "If you're in urgent need of a washroom, you can also consider using the facilities on a different floor, such as the 7th or 9th floor, until the issue is resolved.",
+        "Please keep an eye on the notice boards or our social media channels for any updates on the status of the maintenance work, as we'll post updates there once the work is scheduled or completed."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding The 8th floor washroom is clogged.. It is rated 4/5 in severity and forwarded to the Housekeeping, Maintenance department(s)."
+    }
+  }
+]

@@ -29,12 +29,16 @@ const StudentNetwork = () => {
 
   const loadComplaints = async () => {
     try {
-      const response = await complaintAPI.getMyComplaints(user?.user_id, 'network');
-      if (response.success) {
-        setMyComplaints(response.data);
+      const response = await axios.get(`${FLASK_API}/complaints`);
+      if (Array.isArray(response.data)) {
+        // Filter only Network & IT complaints
+        const networkComplaints = response.data.filter(complaint => 
+          complaint.admin_view?.departments?.includes("Network & IT")
+        );
+        setMyComplaints(networkComplaints);
       }
-    } catch {
-      // Handle error
+    } catch (error) {
+      console.error('Error loading complaints:', error);
     }
   };
 
@@ -275,7 +279,7 @@ const StudentNetwork = () => {
             </button>
           </div>
 
-          {/* My Complaints */}
+          {/* My Network Complaints */}
           <div className="content-card">
             <h2>
               <i className="fas fa-list"></i> My Network Complaints
@@ -286,7 +290,6 @@ const StudentNetwork = () => {
                   <tr>
                     <th>Complaint ID</th>
                     <th>Title</th>
-                    <th>Severity</th>
                     <th>Status</th>
                     <th>Date</th>
                     <th>Action</th>
@@ -295,14 +298,13 @@ const StudentNetwork = () => {
                 <tbody>
                   {myComplaints.length === 0 ? (
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
                         No complaints found
                       </td>
                     </tr>
                   ) : (
                     myComplaints.map((complaint) => {
                       const studentView = complaint.student_view || complaint;
-                      const severity = studentView.severity || 3;
                       const status = studentView.status || 'Pending';
                       const timestamp = studentView.timestamp || complaint.timestamp || new Date().toISOString();
                       
@@ -310,11 +312,6 @@ const StudentNetwork = () => {
                         <tr key={complaint.id || complaint.complaint_id}>
                           <td>{complaint.id || complaint.complaint_id}</td>
                           <td>{studentView.complaint?.split('\n')[0] || complaint.title || 'N/A'}</td>
-                          <td>
-                            <span className={getSeverityBadgeClass(severity)}>
-                              {severity}/5
-                            </span>
-                          </td>
                           <td>
                             <span className={`status-badge ${getStatusBadgeClass(status.toLowerCase().replace(' ', '_'))}`}>
                               {status}

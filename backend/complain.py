@@ -64,12 +64,27 @@ def handle_error(error):
 def _append_to_store(item):
     try:
         existing = []
+        logger.info(f"Storage file path: {STORAGE_FILE}")
+        logger.info(f"Storage file exists: {os.path.exists(STORAGE_FILE)}")
+        
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(STORAGE_FILE), exist_ok=True)
+        
         if os.path.exists(STORAGE_FILE):
             with open(STORAGE_FILE, "r", encoding="utf-8") as f:
-                existing = json.load(f)
+                content = f.read().strip()
+                existing = json.loads(content) if content else []
+                logger.info(f"Read {len(existing)} existing complaints")
+        
         existing.append(item)
+        logger.info(f"Total complaints after append: {len(existing)}")
+        
+        # Write to file
         with open(STORAGE_FILE, "w", encoding="utf-8") as f:
-            json.dump(existing, f, indent=2)
+            json.dump(existing, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"✓ Successfully saved complaint to {STORAGE_FILE}")
+        logger.info(f"✓ Complaint ID: {item['id']}")
     except Exception as e:
         logger.error(f"Storage error: {str(e)}", exc_info=True)
         raise
@@ -167,42 +182,66 @@ def generate_officer_brief(summary, severity, departments):
 
 
 def process_complaint_core(text):
-    timestamp = datetime.datetime.utcnow().isoformat()
-    departments = classify_departments(text)
-    severity = get_severity_score(text)
-    summary = summarize_text(text)
-    contact_info = get_contact_info(departments)
-    suggestions = []
-    for dept in departments:
-        suggestions.extend(fetch_interim_suggestions(text, dept))
-    officer_brief = generate_officer_brief(summary, severity, departments)
+    try:
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        logger.info(f"Step 1: Classifying departments...")
+        departments = classify_departments(text)
+        departments_id = [DEPARTMENT_IDS[dept] for dept in departments if dept in DEPARTMENT_IDS]
+        logger.info(f"  Departments: {departments}")
+        
+        logger.info(f"Step 2: Getting severity score...")
+        severity = get_severity_score(text)
+        logger.info(f"  Severity: {severity}/5")
+        
+        logger.info(f"Step 3: Summarizing text...")
+        summary = summarize_text(text)
+        logger.info(f"  Summary: {summary[:50]}...")
+        
+        logger.info(f"Step 4: Getting contact info...")
+        contact_info = get_contact_info(departments)
+        
+        logger.info(f"Step 5: Fetching suggestions...")
+        suggestions = []
+        for dept in departments:
+            suggestions.extend(fetch_interim_suggestions(text, dept))
+        logger.info(f"  Suggestions: {len(suggestions)} generated")
+        
+        logger.info(f"Step 6: Generating officer brief...")
+        officer_brief = generate_officer_brief(summary, severity, departments)
 
-    student_view = {
-        "complaint": text,
-        "timestamp": timestamp,
-        "status": "Pending"
-    }
+        student_view = {
+            "complaint": text,
+            "timestamp": timestamp,
+            "status": "Pending"
+        }
 
-    admin_view = {
-        "timestamp": timestamp,
-        "severity": severity,
-        "summary": summary,
-        "complaint": text,
-        "departments": departments,
-        "contacts": contact_info,
-        "suggestions": suggestions,
-        "institute": "IIIT Nagpur",
-        "officer_brief": officer_brief
-    }
+        admin_view = {
+            "timestamp": timestamp,
+            "severity": severity,
+            "summary": summary,
+            "complaint": text,
+            "departments": departments,
+            "departments_id": departments_id,
+            "contacts": contact_info,
+            "suggestions": suggestions,
+            "institute": "IIIT Nagpur",
+            "officer_brief": officer_brief
+        }
 
-    record = {
-        "id": int(datetime.datetime.utcnow().timestamp() * 1000),
-        "student_view": student_view,
-        "admin_view": admin_view
-    }
+        record = {
+            "id": int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000),
+            "student_view": student_view,
+            "admin_view": admin_view
+        }
 
-    _append_to_store(record)
-    return record
+        logger.info(f"Step 7: Appending to storage...")
+        _append_to_store(record)
+        logger.info(f"✓ Complaint processed and saved: {record['id']}")
+        
+        return record
+    except Exception as e:
+        logger.error(f"Complaint processing failed: {str(e)}", exc_info=True)
+        raise
 
 
 @app.route("/", methods=["GET"])
@@ -230,25 +269,32 @@ def process_complaint():
         return jsonify({"error": "complaint text too long"}), 400
     
     try:
+        logger.info(f"NEW REQUEST: Processing complaint: {complaint[:60]}...")
         record = process_complaint_core(complaint)
-        logger.info(f"Processed complaint ID: {record['id']}")
+        logger.info(f"✓ SUCCESS: Complaint ID {record['id']}")
         return jsonify(record), 200
     except Exception as e:
         logger.error(f"Processing error: {str(e)}", exc_info=True)
-        raise
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/complaints", methods=["GET"])
 def list_complaints():
     try:
+        logger.info(f"Reading from: {STORAGE_FILE}")
         if not os.path.exists(STORAGE_FILE):
+            logger.warning(f"File not found: {STORAGE_FILE}")
             return jsonify([])
+        
         with open(STORAGE_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
+            content = f.read().strip()
+            data = json.loads(content) if content else []
+        
+        logger.info(f"✓ Found {len(data)} complaints in storage")
         return jsonify(data)
     except Exception as e:
         logger.error(f"Read error: {str(e)}", exc_info=True)
-        raise
+        return jsonify([]), 500
 
 
 @app.route("/complaints/<int:cid>", methods=["GET"])

@@ -6,3 +6,4 @@ groq>=0.10.0
 langchain==0.1.0
 langchain-groq>=0.0.1
 google-cloud-dialogflow>=2.16.0
+google-auth>=2.25.0

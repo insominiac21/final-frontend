@@ -36,6 +36,7 @@ const StudentTransport = () => {
   useEffect(() => {
     loadBookings();
     loadSchedules();
+    loadComplaints();
   }, []);
 
   const loadBookings = async () => {
@@ -57,6 +58,21 @@ const StudentTransport = () => {
       }
     } catch {
       // Handle error
+    }
+  };
+
+  const loadComplaints = async () => {
+    try {
+      const response = await axios.get(`${FLASK_API}/complaints`);
+      if (Array.isArray(response.data)) {
+        // Filter only Transport complaints
+        const transportComplaints = response.data.filter(complaint => 
+          complaint.admin_view?.departments?.includes("Transport")
+        );
+        setMyComplaints(transportComplaints);
+      }
+    } catch (error) {
+      console.error('Error loading complaints:', error);
     }
   };
 
