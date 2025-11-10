@@ -25,6 +25,118 @@ const StudentNetwork = () => {
     media: null,
   });
 
+  // Dummy data for Network & IT complaints
+  const dummyComplaints = [
+    {
+      id: "NET001",
+      student_view: {
+        complaint: "WiFi connection is extremely slow in hostel Block A. Unable to attend online classes properly. Speed drops below 1 Mbps during peak hours.",
+        status: "in_progress",
+        timestamp: "2025-11-10T14:20:00"
+      },
+      admin_view: {
+        departments: ["Network & IT"],
+        severity: 4,
+        suggestions: [
+          "IT team is investigating bandwidth issues in Block A",
+          "Try connecting to the ethernet port for stable connection",
+          "Avoid peak hours (7 PM - 10 PM) for heavy downloads",
+          "Clear your device's network cache and reconnect"
+        ]
+      }
+    },
+    {
+      id: "NET002",
+      student_view: {
+        complaint: "Student portal login is not working. Getting 'Session Timeout' error even after successful login. Cannot access grades and course materials.",
+        status: "Pending",
+        timestamp: "2025-11-11T09:15:00"
+      },
+      admin_view: {
+        departments: ["Network & IT"],
+        severity: 5,
+        suggestions: [
+          "Clear browser cookies and cache",
+          "Try accessing the portal in incognito/private mode",
+          "Use Google Chrome or Firefox for better compatibility",
+          "Contact IT helpdesk at ext. 2345 for immediate assistance"
+        ]
+      }
+    },
+    {
+      id: "NET003",
+      student_view: {
+        complaint: "Library computers are running very slow and many are infected with malware. Several PCs are showing pop-up ads and freezing.",
+        status: "resolved",
+        timestamp: "2025-11-06T11:30:00"
+      },
+      admin_view: {
+        departments: ["Network & IT"],
+        severity: 4,
+        suggestions: [
+          "All library computers have been scanned and cleaned",
+          "Antivirus software has been updated on all systems",
+          "New firewall policies have been implemented",
+          "Report any suspicious activity immediately"
+        ]
+      }
+    },
+    {
+      id: "NET004",
+      student_view: {
+        complaint: "VPN access for off-campus students is not working. Cannot access digital library resources from home.",
+        status: "in_progress",
+        timestamp: "2025-11-09T16:45:00"
+      },
+      admin_view: {
+        departments: ["Network & IT"],
+        severity: 3,
+        suggestions: [
+          "VPN server is being upgraded for better capacity",
+          "Download the latest VPN client from the IT portal",
+          "Check if your institution email credentials are correct",
+          "Temporary access via proxy server is available - contact IT"
+        ]
+      }
+    },
+    {
+      id: "NET005",
+      student_view: {
+        complaint: "Email service is down. Not receiving important emails from professors and administration. Emails are bouncing back.",
+        status: "Pending",
+        timestamp: "2025-11-10T08:00:00"
+      },
+      admin_view: {
+        departments: ["Network & IT"],
+        severity: 5,
+        suggestions: [
+          "Email server maintenance is scheduled - check IT announcements",
+          "Use your alternate email temporarily",
+          "Check your mailbox quota - you may need to delete old emails",
+          "Whitelist important sender addresses"
+        ]
+      }
+    },
+    {
+      id: "NET006",
+      student_view: {
+        complaint: "Printing services in computer lab are not working. Submitted print jobs are stuck in queue and not printing.",
+        status: "resolved",
+        timestamp: "2025-11-05T13:20:00"
+      },
+      admin_view: {
+        departments: ["Network & IT"],
+        severity: 2,
+        suggestions: [
+          "Print queue has been cleared and services restored",
+          "Ensure you have sufficient print balance in your account",
+          "Use the updated printer drivers available on the IT portal",
+          "Report printer jams immediately to lab staff"
+        ]
+      }
+    }
+  ];
+
   useEffect(() => {
     loadComplaints();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,10 +155,16 @@ const StudentNetwork = () => {
         const networkComplaints = response.data.filter(complaint => 
           complaint.admin_view?.departments?.includes("Network & IT")
         );
-        setMyComplaints(networkComplaints);
+        // Use API data if available, otherwise use dummy data
+        setMyComplaints(networkComplaints.length > 0 ? networkComplaints : dummyComplaints);
+      } else {
+        // If response is not an array, use dummy data
+        setMyComplaints(dummyComplaints);
       }
     } catch (error) {
       console.error('Error loading complaints:', error);
+      // On error, use dummy data
+      setMyComplaints(dummyComplaints);
     }
   };
 

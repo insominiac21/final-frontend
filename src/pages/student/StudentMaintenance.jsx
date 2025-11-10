@@ -25,6 +25,154 @@ const StudentMaintenance = () => {
     media: null,
   });
 
+  // Dummy data for Maintenance & Housekeeping complaints
+  const dummyComplaints = [
+    {
+      id: "MNT001",
+      student_view: {
+        complaint: "Water leakage from ceiling in Room 204, Block B. The problem worsens during rain and water is dripping on study table and bed.",
+        status: "in_progress",
+        timestamp: "2025-11-10T06:30:00"
+      },
+      admin_view: {
+        departments: ["Maintenance"],
+        severity: 5,
+        suggestions: [
+          "Maintenance team has been notified and will inspect today",
+          "Temporary waterproofing has been arranged",
+          "Roof repair scheduled for this weekend",
+          "Contact hostel warden if situation worsens"
+        ]
+      }
+    },
+    {
+      id: "MNT002",
+      student_view: {
+        complaint: "Elevator in academic block is making strange noises and jerking. Safety concern for students and faculty.",
+        status: "Pending",
+        timestamp: "2025-11-11T10:45:00"
+      },
+      admin_view: {
+        departments: ["Maintenance"],
+        severity: 5,
+        suggestions: [
+          "Elevator inspection has been scheduled immediately",
+          "Use stairs or alternate elevator until repair is completed",
+          "Annual maintenance contract vendor has been contacted",
+          "Safety audit will be conducted post-repair"
+        ]
+      }
+    },
+    {
+      id: "MNT003",
+      student_view: {
+        complaint: "Common room lights are not working properly in hostel common area. Many bulbs are fused and creating dark spots.",
+        status: "resolved",
+        timestamp: "2025-11-08T19:00:00"
+      },
+      admin_view: {
+        departments: ["Maintenance"],
+        severity: 2,
+        suggestions: [
+          "All fused bulbs have been replaced with LED lights",
+          "Electrical wiring has been checked and repaired",
+          "New energy-efficient fixtures installed",
+          "Report any electrical issues immediately for safety"
+        ]
+      }
+    },
+    {
+      id: "MNT004",
+      student_view: {
+        complaint: "Bathroom drainage is blocked in girls hostel washroom on 3rd floor. Water accumulation and bad smell issue.",
+        status: "in_progress",
+        timestamp: "2025-11-09T07:15:00"
+      },
+      admin_view: {
+        departments: ["Housekeeping", "Maintenance"],
+        severity: 4,
+        suggestions: [
+          "Plumbing team is working on clearing the blockage",
+          "Deep cleaning scheduled after drainage is fixed",
+          "Temporary access to alternate washroom on 2nd floor",
+          "Do not dispose solid waste in drainage to prevent future blocks"
+        ]
+      }
+    },
+    {
+      id: "MNT005",
+      student_view: {
+        complaint: "Air conditioner in lecture hall 101 is not cooling. Room temperature is unbearable during afternoon classes.",
+        status: "Pending",
+        timestamp: "2025-11-10T14:00:00"
+      },
+      admin_view: {
+        departments: ["Maintenance"],
+        severity: 3,
+        suggestions: [
+          "AC technician visit scheduled for tomorrow morning",
+          "Gas refilling may be required - checking compressor",
+          "Temporary fans have been arranged",
+          "Classes may be shifted to alternate room if needed"
+        ]
+      }
+    },
+    {
+      id: "MNT006",
+      student_view: {
+        complaint: "Hostel rooms are not being cleaned regularly. Garbage bins are overflowing and corridors need sweeping.",
+        status: "resolved",
+        timestamp: "2025-11-06T11:20:00"
+      },
+      admin_view: {
+        departments: ["Housekeeping"],
+        severity: 3,
+        suggestions: [
+          "Additional housekeeping staff has been deployed",
+          "Daily cleaning schedule has been implemented",
+          "Waste segregation bins installed on each floor",
+          "Report any cleanliness issues to hostel supervisor"
+        ]
+      }
+    },
+    {
+      id: "MNT007",
+      student_view: {
+        complaint: "Door lock of Room 315 is broken. Security risk as door cannot be properly locked when students are away.",
+        status: "in_progress",
+        timestamp: "2025-11-09T20:30:00"
+      },
+      admin_view: {
+        departments: ["Maintenance"],
+        severity: 4,
+        suggestions: [
+          "Carpenter has been assigned to replace the lock",
+          "Temporary lock arrangement provided",
+          "New locks will be installed within 24 hours",
+          "Keep valuables with hostel warden until lock is fixed"
+        ]
+      }
+    },
+    {
+      id: "MNT008",
+      student_view: {
+        complaint: "Garden area has overgrown grass and bushes. Mosquito breeding concern and untidy appearance of campus.",
+        status: "Pending",
+        timestamp: "2025-11-08T16:00:00"
+      },
+      admin_view: {
+        departments: ["Housekeeping"],
+        severity: 2,
+        suggestions: [
+          "Weekly gardening schedule has been prepared",
+          "Professional landscaping service hired for campus beautification",
+          "Pest control and fogging scheduled for weekend",
+          "Use mosquito repellents and keep windows closed during evening"
+        ]
+      }
+    }
+  ];
+
   useEffect(() => {
     loadComplaints();
   }, []);
@@ -43,10 +191,16 @@ const StudentMaintenance = () => {
           complaint.admin_view?.departments?.includes("Housekeeping") || 
           complaint.admin_view?.departments?.includes("Maintenance")
         );
-        setMyComplaints(maintenanceComplaints);
+        // Use API data if available, otherwise use dummy data
+        setMyComplaints(maintenanceComplaints.length > 0 ? maintenanceComplaints : dummyComplaints);
+      } else {
+        // If response is not an array, use dummy data
+        setMyComplaints(dummyComplaints);
       }
     } catch (error) {
       console.error('Error loading complaints:', error);
+      // On error, use dummy data
+      setMyComplaints(dummyComplaints);
     }
   };
 
