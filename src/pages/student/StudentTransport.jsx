@@ -26,6 +26,136 @@ const StudentTransport = () => {
     description: '',
   });
 
+  // Dummy data for Transport complaints
+  const dummyComplaints = [
+    {
+      id: "TRN001",
+      student_view: {
+        complaint: "Bus route 3 is frequently late by 20-30 minutes. Students are missing their first period classes regularly.",
+        status: "in_progress",
+        timestamp: "2025-11-10T07:45:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 4,
+        suggestions: [
+          "Transport department is reviewing route timings",
+          "Additional bus has been assigned during peak hours",
+          "Download the campus bus tracking app for real-time updates",
+          "Consider taking the earlier bus (Route 2) as an alternative"
+        ]
+      }
+    },
+    {
+      id: "TRN002",
+      student_view: {
+        complaint: "Campus shuttle AC is not working properly. Very uncomfortable during hot weather, especially in afternoon trips.",
+        status: "Pending",
+        timestamp: "2025-11-11T14:30:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 3,
+        suggestions: [
+          "AC servicing has been scheduled for this week",
+          "Request has been forwarded to maintenance team",
+          "Temporary shuttle with working AC will be deployed",
+          "Report bus number to transport office for priority service"
+        ]
+      }
+    },
+    {
+      id: "TRN003",
+      student_view: {
+        complaint: "Cab sharing feature in transport app is not functioning. Unable to find or join rides for weekend trips.",
+        status: "resolved",
+        timestamp: "2025-11-08T18:20:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 2,
+        suggestions: [
+          "App has been updated with bug fixes",
+          "Clear app cache and reinstall if issues persist",
+          "New carpooling features have been added",
+          "Contact transport helpdesk for assistance with bookings"
+        ]
+      }
+    },
+    {
+      id: "TRN004",
+      student_view: {
+        complaint: "Bus driver on Route 5 drives recklessly and overspeeds. Safety concern for all passengers.",
+        status: "in_progress",
+        timestamp: "2025-11-09T16:10:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 5,
+        suggestions: [
+          "Complaint has been escalated to transport head",
+          "Driver counseling and retraining in progress",
+          "GPS speed monitoring has been activated on all buses",
+          "Report any unsafe driving immediately via emergency helpline"
+        ]
+      }
+    },
+    {
+      id: "TRN005",
+      student_view: {
+        complaint: "No buses available for late-night library users. Last bus leaves at 9 PM but library is open until 11 PM.",
+        status: "Pending",
+        timestamp: "2025-11-10T22:00:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 3,
+        suggestions: [
+          "Proposal for extended shuttle service is under review",
+          "Security escort service is available - call ext. 9999",
+          "Consider using the cab booking facility for late returns",
+          "Gather support from other students for regular late-night service"
+        ]
+      }
+    },
+    {
+      id: "TRN006",
+      student_view: {
+        complaint: "Monthly bus pass renewal process is too complicated and time-consuming. Online payment gateway keeps failing.",
+        status: "resolved",
+        timestamp: "2025-11-06T10:30:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 2,
+        suggestions: [
+          "Payment gateway has been upgraded and is now stable",
+          "Auto-renewal option is now available in the app",
+          "Multiple payment methods (UPI, Card, Net Banking) supported",
+          "Contact accounts office for payment-related queries"
+        ]
+      }
+    },
+    {
+      id: "TRN007",
+      student_view: {
+        complaint: "Bus seats are in poor condition with torn cushions and broken armrests. Very uncomfortable for long routes.",
+        status: "in_progress",
+        timestamp: "2025-11-07T12:15:00"
+      },
+      admin_view: {
+        departments: ["Transport"],
+        severity: 3,
+        suggestions: [
+          "Bus refurbishment project has been initiated",
+          "Seats replacement scheduled for all buses this month",
+          "Temporary buses with better seating deployed on long routes",
+          "Report specific bus numbers for priority maintenance"
+        ]
+      }
+    }
+  ];
+
   const [cabBookingForm, setCabBookingForm] = useState({
     source: '',
     destination: '',
@@ -78,10 +208,16 @@ const StudentTransport = () => {
         const transportComplaints = response.data.filter(complaint => 
           complaint.admin_view?.departments?.includes("Transport")
         );
-        setMyComplaints(transportComplaints);
+        // Use API data if available, otherwise use dummy data
+        setMyComplaints(transportComplaints.length > 0 ? transportComplaints : dummyComplaints);
+      } else {
+        // If response is not an array, use dummy data
+        setMyComplaints(dummyComplaints);
       }
     } catch (error) {
       console.error('Error loading complaints:', error);
+      // On error, use dummy data
+      setMyComplaints(dummyComplaints);
     }
   };
 

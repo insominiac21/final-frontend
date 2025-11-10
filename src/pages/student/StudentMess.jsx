@@ -44,7 +44,111 @@ const StudentMess = () => {
 
   });
 
-
+  // Dummy data for complaints
+  const dummyComplaints = [
+    {
+      id: "MESS001",
+      student_view: {
+        complaint: "The quality of food served during lunch has deteriorated significantly. The dal was undercooked and the chapatis were hard.",
+        status: "Pending",
+        timestamp: "2025-11-10T10:30:00"
+      },
+      admin_view: {
+        departments: ["Mess & Dining"],
+        severity: 4,
+        suggestions: [
+          "Speak with the mess manager during office hours (9 AM - 5 PM)",
+          "Ensure you're eating during the designated meal times for freshest food",
+          "Report specific issues immediately to the mess in-charge on duty"
+        ]
+      }
+    },
+    {
+      id: "MESS002",
+      student_view: {
+        complaint: "There are insufficient tables and chairs in the mess during peak hours. Students have to wait for 15-20 minutes to get a seat.",
+        status: "in_progress",
+        timestamp: "2025-11-08T12:45:00"
+      },
+      admin_view: {
+        departments: ["Mess & Dining"],
+        severity: 3,
+        suggestions: [
+          "Try to arrive slightly before or after peak hours (12:30-1:00 PM)",
+          "Additional seating arrangement is being planned",
+          "Use the takeaway option during rush hours"
+        ]
+      }
+    },
+    {
+      id: "MESS003",
+      student_view: {
+        complaint: "The mess is not maintaining proper hygiene standards. Found insects in the food yesterday.",
+        status: "resolved",
+        timestamp: "2025-11-05T19:20:00"
+      },
+      admin_view: {
+        departments: ["Mess & Dining"],
+        severity: 5,
+        suggestions: [
+          "Deep cleaning has been conducted",
+          "Pest control measures have been implemented",
+          "Regular inspections are now scheduled weekly"
+        ]
+      }
+    },
+    {
+      id: "MESS004",
+      student_view: {
+        complaint: "The breakfast timings are too short. Many students miss breakfast due to early morning classes.",
+        status: "Pending",
+        timestamp: "2025-11-09T08:15:00"
+      },
+      admin_view: {
+        departments: ["Mess & Dining"],
+        severity: 2,
+        suggestions: [
+          "Current breakfast hours: 7:30 AM - 9:30 AM on weekdays",
+          "Weekend breakfast extends till 10:00 AM",
+          "Request for extension is being reviewed by the mess committee"
+        ]
+      }
+    },
+    {
+      id: "MESS005",
+      student_view: {
+        complaint: "The vegetarian options are very limited compared to non-vegetarian items. Need more variety in veg menu.",
+        status: "in_progress",
+        timestamp: "2025-11-07T13:00:00"
+      },
+      admin_view: {
+        departments: ["Mess & Dining"],
+        severity: 3,
+        suggestions: [
+          "Menu planning committee is working on expanding vegetarian options",
+          "Share your preferred dishes in the monthly feedback form",
+          "Special vegetarian days are being considered"
+        ]
+      }
+    },
+    {
+      id: "MESS006",
+      student_view: {
+        complaint: "Water cooler is not working properly and drinking water is warm even during hot weather.",
+        status: "resolved",
+        timestamp: "2025-11-04T16:30:00"
+      },
+      admin_view: {
+        departments: ["Mess & Dining"],
+        severity: 4,
+        suggestions: [
+          "Water cooler has been repaired and is now functional",
+          "Regular maintenance schedule has been set up",
+          "Report any equipment malfunction immediately"
+        ]
+      }
+    }
+  ];
 
   useEffect(() => {
 
@@ -81,15 +185,18 @@ const StudentMess = () => {
           complaint.admin_view?.departments?.includes("Mess & Dining")
 
         );
-
-        setMyComplaints(messComplaints);
-
+        // Use API data if available, otherwise use dummy data
+        setMyComplaints(messComplaints.length > 0 ? messComplaints : dummyComplaints);
+      } else {
+        // If response is not an array, use dummy data
+        setMyComplaints(dummyComplaints);
       }
 
     } catch (error) {
 
       console.error('Error loading complaints:', error);
-
+      // On error, use dummy data
+      setMyComplaints(dummyComplaints);
     }
 
   };
