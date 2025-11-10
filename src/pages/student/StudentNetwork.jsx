@@ -13,8 +13,11 @@ const StudentNetwork = () => {
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [myComplaints, setMyComplaints] = useState([]);
+  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [severityFilter, setSeverityFilter] = useState('all');
 
   const [complaintForm, setComplaintForm] = useState({
     title: '',
@@ -26,6 +29,11 @@ const StudentNetwork = () => {
     loadComplaints();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    filterComplaints();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myComplaints, statusFilter, severityFilter]);
 
   const loadComplaints = async () => {
     try {
@@ -40,6 +48,32 @@ const StudentNetwork = () => {
     } catch (error) {
       console.error('Error loading complaints:', error);
     }
+  };
+
+  const filterComplaints = () => {
+    let filtered = [...myComplaints];
+    
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((c) => {
+        const status = c.student_view?.status || c.status || 'Pending';
+        return status.toLowerCase().replace(' ', '_') === statusFilter;
+      });
+    }
+    
+    if (severityFilter !== 'all') {
+      filtered = filtered.filter((c) => {
+        const severity = c.admin_view?.severity || c.student_view?.severity || 3;
+        
+        // Map 1-5 scale to low/medium/high
+        if (severityFilter === 'low') return severity <= 2;
+        if (severityFilter === 'medium') return severity === 3;
+        if (severityFilter === 'high') return severity >= 4;
+        
+        return true;
+      });
+    }
+    
+    setFilteredComplaints(filtered);
   };
 
   const handleSubmitComplaint = async (e) => {
@@ -279,6 +313,33 @@ const StudentNetwork = () => {
             </button>
           </div>
 
+          {/* Filters */}
+          <div className="content-card">
+            <h2>
+              <i className="fas fa-filter"></i> Filters
+            </h2>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+                <label>Status</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+                <label>Severity</label>
+                <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
+                  <option value="all">All Severity</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* My Network Complaints */}
           <div className="content-card">
             <h2>
@@ -296,14 +357,14 @@ const StudentNetwork = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {myComplaints.length === 0 ? (
+                  {filteredComplaints.length === 0 ? (
                     <tr>
                       <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
                         No complaints found
                       </td>
                     </tr>
                   ) : (
-                    myComplaints.map((complaint) => {
+                    filteredComplaints.map((complaint) => {
                       const studentView = complaint.student_view || complaint;
                       const status = studentView.status || 'Pending';
                       const timestamp = studentView.timestamp || complaint.timestamp || new Date().toISOString();

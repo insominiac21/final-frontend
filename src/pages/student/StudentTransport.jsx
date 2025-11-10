@@ -14,10 +14,14 @@ const StudentTransport = () => {
   const [showCabModal, setShowCabModal] = useState(false);
   const [regularBooking, setRegularBooking] = useState(false);
   const [myBookings, setMyBookings] = useState([]);
+  const [myComplaints, setMyComplaints] = useState([]);
+  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const [busSchedule, setBusSchedule] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [severityFilter, setSeverityFilter] = useState('all');
   const [complaintForm, setComplaintForm] = useState({
     description: '',
   });
@@ -38,6 +42,11 @@ const StudentTransport = () => {
     loadSchedules();
     loadComplaints();
   }, []);
+
+  useEffect(() => {
+    filterComplaints();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myComplaints, statusFilter, severityFilter]);
 
   const loadBookings = async () => {
     try {
@@ -74,6 +83,32 @@ const StudentTransport = () => {
     } catch (error) {
       console.error('Error loading complaints:', error);
     }
+  };
+
+  const filterComplaints = () => {
+    let filtered = [...myComplaints];
+    
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((c) => {
+        const status = c.student_view?.status || c.status || 'Pending';
+        return status.toLowerCase().replace(' ', '_') === statusFilter;
+      });
+    }
+    
+    if (severityFilter !== 'all') {
+      filtered = filtered.filter((c) => {
+        const severity = c.admin_view?.severity || c.student_view?.severity || 3;
+        
+        // Map 1-5 scale to low/medium/high
+        if (severityFilter === 'low') return severity <= 2;
+        if (severityFilter === 'medium') return severity === 3;
+        if (severityFilter === 'high') return severity >= 4;
+        
+        return true;
+      });
+    }
+    
+    setFilteredComplaints(filtered);
   };
 
   const handleCabBookingSubmit = async (e) => {
@@ -166,6 +201,13 @@ const StudentTransport = () => {
       cancelled: 'danger',
     };
     return statusMap[status] || 'pending';
+  };
+
+  const getSeverityBadgeClass = (severity) => {
+    // Severity is now 1-5 scale
+    if (severity >= 4) return 'severity-high';
+    if (severity >= 3) return 'severity-medium';
+    return 'severity-low';
   };
 
   return (
@@ -354,6 +396,91 @@ const StudentTransport = () => {
                               View Details
                             </button>
                           )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="content-card">
+            <h2>
+              <i className="fas fa-filter"></i> Filters
+            </h2>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+                <label>Status</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+                <label>Severity</label>
+                <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
+                  <option value="all">All Severity</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* My Transport Complaints */}
+          <div className="content-card">
+            <h2>
+              <i className="fas fa-list"></i> My Transport Complaints
+            </h2>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Complaint ID</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredComplaints.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                        No complaints found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredComplaints.map((complaint) => (
+                      <tr key={complaint.id}>
+                        <td>{complaint.id}</td>
+                        <td>{complaint.student_view?.complaint?.substring(0, 50) || 'N/A'}...</td>
+                        <td>
+                          <span className={`status-badge ${getStatusBadgeClass(complaint.student_view?.status?.toLowerCase().replace(' ', '_'))}`}>
+                            {complaint.student_view?.status || 'Unknown'}
+                          </span>
+                        </td>
+                        <td>
+                          {complaint.student_view?.timestamp
+                            ? new Date(complaint.student_view.timestamp).toLocaleDateString()
+                            : 'N/A'}
+                        </td>
+                        <td>
+                          <button
+                            className="btn btn-primary"
+                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
+                            onClick={() => {
+                              setSelectedBooking(complaint);
+                              setShowDetailsModal(true);
+                            }}
+                          >
+                            View Details
+                          </button>
                         </td>
                       </tr>
                     ))
