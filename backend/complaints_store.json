@@ -1,1 +1,164 @@
-[]
+[
+  {
+    "id": 1762856245849,
+    "student_view": {
+      "complaint": "api.jsx ko chedna mat",
+      "timestamp": "2025-11-11T10:17:24.417241+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-11T10:17:24.417241+00:00",
+      "severity": 1,
+      "summary": "Do not modify the api.jsx file.",
+      "complaint": "api.jsx ko chedna mat",
+      "departments": [
+        "Academics / Registrar"
+      ],
+      "departments_id": [
+        "D07"
+      ],
+      "contacts": {
+        "Academics / Registrar": "academics@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I understand your concern about the api.jsx file. While the Academics / Registrar department reviews your complaint, here are some suggestions that may help:",
+        "Reach out to your instructor or teaching assistant to discuss alternative approaches to completing the assignment, as they may be able to provide guidance on how to work around the issue with the api.jsx file.",
+        "Consider seeking help from your peers or senior students who may have experience with similar projects, as they can offer valuable insights and tips on how to navigate the challenge.",
+        "Review the course materials and documentation provided to see if there are any specific instructions or guidelines for handling the api.jsx file, as you may have missed something important."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding Do not modify the api.jsx file.. It is rated 1/5 in severity and forwarded to the Academics / Registrar department(s)."
+    }
+  },
+  {
+    "id": 1762856269204,
+    "student_view": {
+      "complaint": "food taste bad",
+      "timestamp": "2025-11-11T10:17:47.589104+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-11T10:17:47.589104+00:00",
+      "severity": 2,
+      "summary": "The food tastes bad.",
+      "complaint": "food taste bad",
+      "departments": [
+        "Mess & Dining"
+      ],
+      "departments_id": [
+        "D05"
+      ],
+      "contacts": {
+        "Mess & Dining": "mess@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I'm so sorry to hear that you're not enjoying the food in our mess. We take your feedback seriously and will definitely look into this matter. While our Mess & Dining department reviews your complaint, here are some suggestions that might help:",
+        "Please try speaking with the mess staff or the chef directly, as they may be able to make some adjustments to the dishes or provide alternative options that you might enjoy.",
+        "You can also consider providing specific feedback on the dishes you didn't like, including the date, time, and name of the dish, which will help our team to identify the issue and make necessary changes.",
+        "If you have any dietary restrictions or preferences, please make sure to inform the mess staff, as they can try to accommodate your needs and provide more personalized options."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding The food tastes bad.. It is rated 2/5 in severity and forwarded to the Mess & Dining department(s)."
+    }
+  },
+  {
+    "id": 1762856298333,
+    "student_view": {
+      "complaint": "washroom\n\nnischal says only my bathroom is good",
+      "timestamp": "2025-11-11T10:18:15.525797+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-11T10:18:15.525797+00:00",
+      "severity": 1,
+      "summary": "Nischal boasts about his bathroom.",
+      "complaint": "washroom\n\nnischal says only my bathroom is good",
+      "departments": [
+        "Housekeeping",
+        "Hostel Office / Residence Life"
+      ],
+      "departments_id": [
+        "D02",
+        "D09"
+      ],
+      "contacts": {
+        "Housekeeping": "housekeeping@iiit-nagpur.ac.in",
+        "Hostel Office / Residence Life": "hostel@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I understand your concern about the washroom, and I'm happy to help. While the Housekeeping department reviews your complaint, here are some suggestions that might be helpful to you:",
+        "If you haven't already, please take a few photos of the issues you're facing in the washroom, as this will help the Housekeeping team to better understand the problem and prioritize their work.",
+        "In the meantime, you can also consider speaking with your floor warden or hostel administrator to see if there are any temporary arrangements that can be made to address the issue, such as providing additional cleaning supplies or scheduling extra cleaning visits.",
+        "If there are any specific cleaning products or equipment that you think would help improve the condition of the washroom, please let the Housekeeping team know, and they can look into providing them.",
+        "I understand that you're facing some issues with the washrooms, and I appreciate you bringing this to our attention. While the Hostel Office / Residence Life department reviews your complaint, here are some suggestions that might help:",
+        "If you haven't already, please try to identify the specific issues with the other washrooms, such as cleanliness, maintenance, or hygiene, so that you can provide more detailed feedback to the Hostel Office / Residence Life department.",
+        "Consider speaking with your fellow hostel residents to see if they've experienced similar problems and if there are any common concerns that can be addressed together, which might help prioritize the maintenance or repairs.",
+        "You can also reach out to your hostel's student council representative or warden to report the issue and get their assistance in escalating the matter to the Hostel Office / Residence Life department, which might expedite the resolution process."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding Nischal boasts about his bathroom.. It is rated 1/5 in severity and forwarded to the Housekeeping, Hostel Office / Residence Life department(s)."
+    }
+  },
+  {
+    "id": 1762856329003,
+    "student_view": {
+      "complaint": "title kya dkiyahyebge\n\nbathroom",
+      "timestamp": "2025-11-11T10:18:47.063013+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-11T10:18:47.063013+00:00",
+      "severity": 1,
+      "summary": "The text is nonsensical and mentions a bathroom.",
+      "complaint": "title kya dkiyahyebge\n\nbathroom",
+      "departments": [
+        "Housekeeping"
+      ],
+      "departments_id": [
+        "D02"
+      ],
+      "contacts": {
+        "Housekeeping": "housekeeping@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I'm so sorry to hear that you're facing issues with the bathroom. While our Housekeeping department reviews your complaint, here are some suggestions that might help:",
+        "Please try to specify the exact location of the bathroom that's causing the issue, such as the hostel block or floor number, so that our team can prioritize and address the problem more efficiently.",
+        "If the issue is related to cleanliness or maintenance, you can also consider reaching out to your hostel warden or caretaker, as they may be able to provide a temporary solution or expedite the repair process.",
+        "In the meantime, if you need to use alternative bathroom facilities, you can check with our campus facilities team to see if there are any other options available, such as bathrooms in other hostels or academic buildings."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding The text is nonsensical and mentions a bathroom.. It is rated 1/5 in severity and forwarded to the Housekeeping department(s)."
+    }
+  },
+  {
+    "id": 1762856453587,
+    "student_view": {
+      "complaint": "lan\n\nlan very slow",
+      "timestamp": "2025-11-11T10:20:52.128314+00:00",
+      "status": "Pending"
+    },
+    "admin_view": {
+      "timestamp": "2025-11-11T10:20:52.128314+00:00",
+      "severity": 3,
+      "summary": "The Local Area Network (LAN) is experiencing slow performance.",
+      "complaint": "lan\n\nlan very slow",
+      "departments": [
+        "Network & IT"
+      ],
+      "departments_id": [
+        "D01"
+      ],
+      "contacts": {
+        "Network & IT": "it@iiit-nagpur.ac.in"
+      },
+      "suggestions": [
+        "I'm so sorry to hear that you're experiencing issues with the LAN speed. Our Network & IT department is looking into this matter, and in the meantime, here are some suggestions that might help:",
+        "Try restarting your device and router to ensure that it's not a simple connectivity issue, as sometimes a reboot can resolve the problem.",
+        "Check if there are any physical obstructions or interference from other devices that could be affecting the LAN signal strength, and try to minimize them if possible.",
+        "Consider using a wired Ethernet connection instead of Wi-Fi, as it can provide a more stable and faster connection, especially for resource-intensive activities."
+      ],
+      "institute": "IIIT Nagpur",
+      "officer_brief": "A student complaint has been received regarding The Local Area Network (LAN) is experiencing slow performance.. It is rated 3/5 in severity and forwarded to the Network & IT department(s)."
+    }
+  }
+]
