@@ -3,23 +3,15 @@ import { useSelector } from 'react-redux';
 import Navbar from '../../components/shared/Navbar';
 import Footer from '../../components/shared/Footer';
 import Modal from '../../components/shared/Modal';
-// 1. Import your complaintAPI
-import { complaintAPI } from '../../services/api'; // <-- Make sure this path is correct
-
-// 2. Removed axios and FLASK_API
-// import axios from 'axios';
-// const FLASK_API = 'http://localhost:5000'; // No longer needed here
+import { complaintAPI } from '../../services/api';
 
 const StudentMess = () => {
   const { user } = useSelector((state) => state.auth);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [myComplaints, setMyComplaints] = useState([]);
-  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [severityFilter, setSeverityFilter] = useState('all');
 
   const [complaintForm, setComplaintForm] = useState({
     description: '',
@@ -29,11 +21,6 @@ const StudentMess = () => {
     loadComplaints();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    filterComplaints();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myComplaints, statusFilter, severityFilter]);
 
   // 3. UPDATED loadComplaints to use complaintAPI
   const loadComplaints = async () => {
@@ -56,33 +43,6 @@ const StudentMess = () => {
     }
   };
 
-  // This function is fine, it works on the local myComplaints state
-  const filterComplaints = () => {
-    let filtered = [...myComplaints];
-    
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((c) => {
-        const status = c.student_view?.status || c.status || 'Pending';
-        return status.toLowerCase().replace(' ', '_') === statusFilter;
-      });
-    }
-    
-    if (severityFilter !== 'all') {
-      filtered = filtered.filter((c) => {
-        const severity = c.admin_view?.severity || c.student_view?.severity || 3;
-        
-        // Map 1-5 scale to low/medium/high
-        if (severityFilter === 'low') return severity <= 2;
-        if (severityFilter === 'medium') return severity === 3;
-        if (severityFilter === 'high') return severity >= 4;
-        
-        return true;
-      });
-    }
-    
-    setFilteredComplaints(filtered);
-  };
-
   // 4. UPDATED handleSubmitComplaint to use complaintAPI
   const handleSubmitComplaint = async (e) => {
     e.preventDefault();
@@ -98,10 +58,10 @@ const StudentMess = () => {
 
       // Check the response format from api.js { success: true, ... }
       if (response.success) {
-        alert('Complaint registered successfully!');
-        setComplaintForm({ description: '' });
-        setShowComplaintModal(false);
-        await loadComplaints(); // Reload complaints
+        alert('Complaint registered successfully!');
+        setComplaintForm({ description: '' });
+        setShowComplaintModal(false);
+        await loadComplaints(); // Reload complaints
       } else {
         // 5. Fixed alert to show the actual error
         alert('Error submitting complaint: ' + response.error);
@@ -115,7 +75,7 @@ const StudentMess = () => {
     }
   };
 
-  // Helper functions are fine as-is
+  // Helper functions are fine as-is
   const getStatusBadgeClass = (status) => {
     const statusMap = {
       Pending: 'pending',
@@ -123,13 +83,6 @@ const StudentMess = () => {
       resolved: 'resolved',
     };
     return statusMap[status] || 'pending';
-  };
-
-  const getSeverityBadgeClass = (severity) => {
-    // Severity is now 1-5 scale
-    if (severity >= 4) return 'severity-high';
-    if (severity >= 3) return 'severity-medium';
-    return 'severity-low';
   };
 
   return (
@@ -206,34 +159,7 @@ const StudentMess = () => {
             </button>
           </div>
 
-          {/* Filters */}
-          <div className="content-card">
-            <h2>
-            	<i className="fas fa-filter"></i> Filters
-            </h2>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
-                <label>Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-                </select>
-              </div>
-              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
-                <label>Severity</label>
-                <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
-                  <option value="all">All Severity</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* My Complaints */}
+          {/* My Complaints - Removed filters */}
           <div className="content-card">
             <h2>
             	<i className="fas fa-list"></i> My Complaints
@@ -241,7 +167,7 @@ const StudentMess = () => {
             <div className="table-container">
               <table>
                 <thead>
-                 <tr>
+                   <tr>
                     <th>Complaint ID</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -250,14 +176,14 @@ const StudentMess = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredComplaints.length === 0 ? (
+                  {myComplaints.length === 0 ? (
                     <tr>
                       <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
                         No complaints found
                       </td>
                     </tr>
                   ) : (
-                    filteredComplaints.map((complaint) => (
+                    myComplaints.map((complaint) => (
                       <tr key={complaint.id}>
                         <td>{complaint.id}</td>
                         <td>{complaint.student_view?.complaint?.substring(0, 50) || 'N/A'}...</td>

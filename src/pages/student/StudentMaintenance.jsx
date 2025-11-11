@@ -7,19 +7,16 @@ import Modal from '../../components/shared/Modal';
 import { complaintAPI } from '../../services/api'; // Using the path from your file
 
 // 2. REMOVED axios and FLASK_API
-// import axios from 'axios';
-// const FLASK_API = 'http://localhost:5000';
+import axios from 'axios';
+const FLASK_API = 'http://localhost:5000';
 
 const StudentMaintenance = () => {
   const { user } = useSelector((state) => state.auth);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [myComplaints, setMyComplaints] = useState([]);
-  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [severityFilter, setSeverityFilter] = useState('all');
 
   const [complaintForm, setComplaintForm] = useState({
     title: '',
@@ -27,19 +24,12 @@ const StudentMaintenance = () => {
     media: null,
   });
 
-  // 3. REMOVED the local dummyComplaints array
-
   useEffect(() => {
     loadComplaints();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    filterComplaints();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myComplaints, statusFilter, severityFilter]);
-
-  // 4. UPDATED loadComplaints to use complaintAPI
+  // 4. UPDATED loadComplaints to use complaintAPI
   const loadComplaints = async () => {
     try {
       // This function now gets all data from your api.js
@@ -61,33 +51,6 @@ const StudentMaintenance = () => {
       console.error('Error loading complaints:', error);
       setMyComplaints([]); // Set to empty on failure
     }
-  };
-
-  // This function is fine, as it operates on the myComplaints state
-  const filterComplaints = () => {
-    let filtered = [...myComplaints];
-    
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((c) => {
-        const status = c.student_view?.status || c.status || 'Pending';
-        return status.toLowerCase().replace(' ', '_') === statusFilter;
-      });
-    }
-    
-    if (severityFilter !== 'all') {
-      filtered = filtered.filter((c) => {
-        const severity = c.admin_view?.severity || c.student_view?.severity || 3;
-        
-        // Map 1-5 scale to low/medium/high
-        if (severityFilter === 'low') return severity <= 2;
-        if (severityFilter === 'medium') return severity === 3;
-        if (severityFilter === 'high') return severity >= 4;
-        
-        return true;
-      });
-    }
-    
-    setFilteredComplaints(filtered);
   };
 
   // 5. UPDATED handleSubmitComplaint to use complaintAPI
@@ -122,7 +85,6 @@ const StudentMaintenance = () => {
     }
   };
 
-  // Helper functions are fine and will work with the data from api.js
   const getStatusBadgeClass = (status) => {
     const statusMap = {
       pending: 'pending',
@@ -130,13 +92,6 @@ const StudentMaintenance = () => {
       resolved: 'resolved',
     };
     return statusMap[status.toLowerCase().replace(' ', '_')] || 'pending';
-  };
-
-  const getSeverityBadgeClass = (severity) => {
-    // Severity is 1-5 scale
-    if (severity >= 4) return 'severity-high';
-    if (severity >= 3) return 'severity-medium';
-    return 'severity-low';
   };
 
   return (
@@ -208,7 +163,7 @@ const StudentMaintenance = () => {
                   <th>Evening</th>
                   <th>Status</th>
                 </tr>
-Read       </thead>
+              </thead>
               <tbody>
                 <tr>
                   <td><strong>Hostel Blocks A-D</strong></td>
@@ -249,7 +204,7 @@ Read       </thead>
               <div className="alert alert-info">
                 <i className="fas fa-check-circle"></i>
                 <span><strong>Furniture:</strong> Broken beds, chairs, tables, and cupboards</span>
-A           </div>
+              </div>
               <div className="alert alert-info">
                 <i className="fas fa-check-circle"></i>
                 <span><strong>Doors & Windows:</strong> Locks, hinges, and glass repairs</span>
@@ -267,7 +222,7 @@ A           </div>
               <li>Report all maintenance issues promptly</li>
               <li>Do not attempt DIY repairs on electrical or plumbing issues</li>
               <li>Keep valuable items secured during cleaning</li>
-Read         <li>Cooperate with maintenance staff for efficient service</li>
+              <li>Cooperate with maintenance staff for efficient service</li>
               <li>Report leaking taps to conserve water</li>
             </ul>
           </div>
@@ -280,94 +235,67 @@ Read         <li>Cooperate with maintenance staff for efficient service</li>
             <button className="btn btn-primary" onClick={() => setShowComplaintModal(true)}>
               <i className="fas fa-plus"></i> File New Complaint
             </button>
-    G   </div>
+          </div>
 
-          {/* Filters */}
+          {/* My Complaints - Removed filters */}
           <div className="content-card">
             <h2>
-              <i className="fas fa-filter"></i> Filters
+              <i className="fas fa-list"></i> My Complaints
             </h2>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
-                <label>Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-          	  </select>
-      	    </div>
-              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
-                <label>Severity</label>
-                <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)}>
-                  <option value="all">All Severity</option>
-                	<option value="low">Low</option>
-                	<option value="medium">Medium</option>
-                	<option value="high">High</option>
-          	  	</select>
-      	   </div>
-          	</div>
-    	  </div>
-
-      	{/* My Complaints */}
-      	<div className="content-card">
-      	  <h2>
-        	  <i className="fas fa-list"></i> My Complaints
-      	  </h2>
-      	  <div className="table-container">
-      	  	<table>
-      	  	  <thead>
-      	  		<tr>
-    	  			  <th>Complaint ID</th>
-      	  			  <th>Title</th>
-      	  			  <th>Status</th>
-    	  			  <th>Date</th>
-      	  			  <th>Action</th>
-      	  		</tr>
-      	  	  </thead>
-      	  	  <tbody>
-      	  		{filteredComplaints.length === 0 ? (
-      	  		  <tr>
-        	  			<td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
-        	  			  No complaints found
-        	  			</td>
-      	  		  </tr>
-      	  		) : (
-      	  		  filteredComplaints.map((complaint) => {
-        	  			const studentView = complaint.student_view || complaint;
-        	  			const status = studentView.status || 'Pending';
-        	  			const timestamp = studentView.timestamp || complaint.timestamp || new Date().toISOString();
-        	  			
-        	  			return (
-        	  			  <tr key={complaint.id || complaint.complaint_id}>
-        	  				<td>{complaint.id || complaint.complaint_id}</td>
-        	  				<td>{studentView.complaint?.split('\n')[0] || complaint.title || 'N/A'}</td>
-        	  				<td>
-        	  				  <span className={`status-badge ${getStatusBadgeClass(status.toLowerCase().replace(' ', '_'))}`}>
-        	  					{status}
-        	  				  </span>
-        	  				</td>
-        	  				<td>{new Date(timestamp).toLocaleDateString()}</td>
-        	  				<td>
-        	  				  <button
-        	  					className="btn btn-primary"
-        	  					style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
-        	  					onClick={() => {
-        	  					  setSelectedComplaint(complaint);
-        	  					  setShowDetailsModal(true);
-        	  					}}
-        	  				  >
-        	  					View Details
-        	  				  </button>
-        	  				</td>
-        	  			  </tr>
-        	  			);
-        	  		  })
-      	  		)}
-      	  	  </tbody>
-      	  	</table>
-      	  </div>
-      	</div>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Complaint ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myComplaints.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                        No complaints found
+                      </td>
+                    </tr>
+                  ) : (
+                    myComplaints.map((complaint) => {
+                      const studentView = complaint.student_view || complaint;
+                      const status = studentView.status || 'Pending';
+                      const timestamp = studentView.timestamp || complaint.timestamp || new Date().toISOString();
+                      
+                      return (
+                        <tr key={complaint.id || complaint.complaint_id}>
+                          <td>{complaint.id || complaint.complaint_id}</td>
+                          <td>{studentView.complaint?.split('\n')[0] || complaint.title || 'N/A'}</td>
+                          <td>
+                            <span className={`status-badge ${getStatusBadgeClass(status.toLowerCase().replace(' ', '_'))}`}>
+                              {status}
+                            </span>
+                          </td>
+                          <td>{new Date(timestamp).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              className="btn btn-primary"
+                              style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
+                              onClick={() => {
+                                setSelectedComplaint(complaint);
+                                setShowDetailsModal(true);
+                              }}
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 

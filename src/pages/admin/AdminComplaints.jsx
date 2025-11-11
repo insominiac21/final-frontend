@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import Navbar from '../../components/shared/Navbar';
 import Footer from '../../components/shared/Footer';
 import Modal from '../../components/shared/Modal';
-
-const FLASK_API = 'http://localhost:5000';
+import { complaintAPI } from '../../services/api';
 
 const AdminComplaints = () => {
   const [complaints, setComplaints] = useState([]);
@@ -20,10 +18,16 @@ const AdminComplaints = () => {
   const loadComplaints = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${FLASK_API}/complaints`);
-      setComplaints(Array.isArray(response.data) ? response.data : []);
+      const response = await complaintAPI.getAllComplaints();
+      if (response.success) {
+        setComplaints(Array.isArray(response.data) ? response.data : []);
+      } else {
+        console.error('Error loading complaints:', response.error);
+        setComplaints([]);
+      }
     } catch (error) {
       console.error('Error loading complaints:', error);
+      setComplaints([]);
     } finally {
       setLoading(false);
     }
@@ -33,37 +37,37 @@ const AdminComplaints = () => {
     if (!selectedComplaint || !newStatus) return;
 
     try {
-      // Update complaint status in storage
-      const updatedComplaints = complaints.map((complaint) => {
-        if (complaint.id === selectedComplaint.id) {
-          return {
-            ...complaint,
-            student_view: {
-              ...complaint.student_view,
-              status: newStatus,
-            },
-          };
-        }
-        return complaint;
-      });
+      const response = await complaintAPI.updateComplaintStatus(
+        selectedComplaint.id,
+        newStatus
+      );
 
-      // Save to backend
-      await axios.post(`${FLASK_API}/complaints/update`, {
-        complaint_id: selectedComplaint.id,
-        status: newStatus,
-      });
+      if (response.success) {
+        setComplaints(
+          complaints.map((complaint) =>
+            complaint.id === selectedComplaint.id
+              ? {
+                  ...complaint,
+                  student_view: {
+                    ...complaint.student_view,
+                    status: newStatus,
+                  },
+                }
+              : complaint
+          )
+        );
+        
+        setSelectedComplaint({
+          ...selectedComplaint,
+          student_view: {
+            ...selectedComplaint.student_view,
+            status: newStatus,
+          },
+        });
 
-      setComplaints(updatedComplaints);
-      setSelectedComplaint({
-        ...selectedComplaint,
-        student_view: {
-          ...selectedComplaint.student_view,
-          status: newStatus,
-        },
-      });
-
-      alert('Status updated successfully!');
-      setNewStatus('');
+        alert('Status updated successfully!');
+        setNewStatus('');
+      }
     } catch (error) {
       console.error('Error updating status:', error);
       alert('Failed to update status');
@@ -79,7 +83,28 @@ const AdminComplaints = () => {
     return statusMap[status] || 'pending';
   };
 
-  if (loading) return <div>Loading...</div>;
+  const getSeverityBadgeClass = (severity) => {
+    if (severity >= 4) return 'severity-high';
+    if (severity >= 3) return 'severity-medium';
+    return 'severity-low';
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="page-container">
+          <div className="page-content">
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <i className="fas fa-spinner fa-spin" style={{ fontSize: '2rem' }}></i>
+              <p style={{ marginTop: '1rem' }}>Loading complaints...</p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -96,7 +121,7 @@ const AdminComplaints = () => {
 
           <div className="content-card">
             <h2>
-              <i className="fas fa-list"></i> All Complaints
+              <i className="fas fa-list"></i> All Complaints ({complaints.length})
             </h2>
             <div className="table-container">
               <table>
@@ -119,48 +144,51 @@ const AdminComplaints = () => {
                       </td>
                     </tr>
                   ) : (
-                    complaints.map((complaint) => (
-                      <tr key={complaint.id}>
-                        <td>{complaint.id}</td>
-                        <td>{complaint.student_view?.complaint?.substring(0, 40) || 'N/A'}...</td>
-                        <td>
-                          <span style={{
-                            backgroundColor: complaint.admin_view?.severity >= 4 ? '#ff4444' : '#ffbb00',
-                            color: 'white',
-                            padding: '0.3rem 0.8rem',
-                            borderRadius: '4px',
-                          }}>
-                            {complaint.admin_view?.severity || 'N/A'} / 5
-                          </span>
-                        </td>
-                        <td>
-                          {complaint.admin_view?.departments?.join(', ') || 'N/A'}
-                        </td>
-                        <td>
-                          <span className={`status-badge ${getStatusBadgeClass(complaint.student_view?.status)}`}>
-                            {complaint.student_view?.status || 'Unknown'}
-                          </span>
-                        </td>
-                        <td>
-                          {complaint.student_view?.timestamp
-                            ? new Date(complaint.student_view.timestamp).toLocaleDateString()
-                            : 'N/A'}
-                        </td>
-                        <td>
-                          <button
-                            className="btn btn-primary"
-                            style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
-                            onClick={() => {
-                              setSelectedComplaint(complaint);
-                              setNewStatus(complaint.student_view?.status || 'Pending');
-                              setShowDetailsModal(true);
-                            }}
-                          >
-                            Manage
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                    complaints.map((complaint) => {
+                      const adminView = complaint.admin_view || {};
+                      const studentView = complaint.student_view || {};
+                      const severity = adminView.severity || studentView.severity || 3;
+                      const status = studentView.status || 'Pending';
+                      const timestamp = adminView.timestamp || studentView.timestamp || new Date().toISOString();
+                      const complaintText = adminView.complaint || studentView.complaint || 'N/A';
+                      const departments = adminView.departments || studentView.departments || [];
+                      
+                      return (
+                        <tr key={complaint.id}>
+                          <td>{complaint.id}</td>
+                          <td>{complaintText.substring(0, 40)}...</td>
+                          <td>
+                            <span className={getSeverityBadgeClass(severity)}>
+                              {severity}/5
+                            </span>
+                          </td>
+                          <td>
+                            {departments.join(', ') || 'N/A'}
+                          </td>
+                          <td>
+                            <span className={`status-badge ${getStatusBadgeClass(status)}`}>
+                              {status}
+                            </span>
+                          </td>
+                          <td>
+                            {new Date(timestamp).toLocaleDateString()}
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-primary"
+                              style={{ padding: '0.3rem 0.8rem', fontSize: '0.85rem' }}
+                              onClick={() => {
+                                setSelectedComplaint(complaint);
+                                setNewStatus(status);
+                                setShowDetailsModal(true);
+                              }}
+                            >
+                              Manage
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -184,10 +212,16 @@ const AdminComplaints = () => {
             <div className="detail-section">
               <h4>📋 Complaint Details</h4>
               <p><strong>ID:</strong> {selectedComplaint.id}</p>
-              <p><strong>Description:</strong> {selectedComplaint.student_view?.complaint}</p>
-              <p><strong>Severity:</strong> {selectedComplaint.admin_view?.severity} / 5</p>
-              <p><strong>Summary:</strong> {selectedComplaint.admin_view?.summary}</p>
-              <p><strong>Departments:</strong> {selectedComplaint.admin_view?.departments?.join(', ')}</p>
+              <p>
+                <strong>Description:</strong>{' '}
+                {selectedComplaint.student_view?.complaint || selectedComplaint.admin_view?.complaint || 'N/A'}
+              </p>
+              <p><strong>Severity:</strong> {selectedComplaint.admin_view?.severity || 3} / 5</p>
+              <p><strong>Summary:</strong> {selectedComplaint.admin_view?.summary || 'N/A'}</p>
+              <p>
+                <strong>Departments:</strong>{' '}
+                {(selectedComplaint.admin_view?.departments || []).join(', ') || 'N/A'}
+              </p>
             </div>
 
             <div className="detail-section" style={{ marginTop: '1.5rem' }}>
@@ -228,6 +262,13 @@ const AdminComplaints = () => {
                     <li key={idx}>{sugg}</li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {selectedComplaint.admin_view?.officer_brief && (
+              <div className="detail-section" style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+                <h4>👨‍💼 Officer Brief</h4>
+                <p style={{ color: '#666' }}>{selectedComplaint.admin_view.officer_brief}</p>
               </div>
             )}
           </div>
