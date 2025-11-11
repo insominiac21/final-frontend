@@ -2,9 +2,10 @@ const NODE_API_URL = 'http://localhost:5001';
 
 // 1. ADD THIS DEVELOPMENT FLAG
 // Set this to true to use the real backend, false to use dummy data instantly.
-const USE_BACKEND = false;
+const USE_BACKEND = true;
 
 const API_BASE_URL = '/api'; // For future REST API endpoints
+const FLASK_API_URL = 'http://localhost:5000';
 
 // Helper function for Flask API calls
 const flaskApiCall = async (endpoint, options = {}) => {
