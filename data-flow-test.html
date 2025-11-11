@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carpool System Data Flow Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .test-passed {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .test-failed {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Carpool System Data Flow Verification</h1>
+        
+        <div class="section">
+            <h2>📊 System Status</h2>
+            <div id="system-status">
+                <p>Loading system status...</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Statistics</h2>
+            <div class="stats-grid" id="stats-grid">
+                <!-- Stats will be populated here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Run Tests</h2>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <button onclick="testCreateRide()">Test Create Ride</button>
+            <button onclick="testPlaceBid()">Test Place Bid</button>
+            <button onclick="testAcceptBid()">Test Accept Bid</button>
+            <button onclick="clearAllData()">Clear All Data</button>
+            <div id="test-results"></div>
+        </div>
+
+        <div class="section">
+            <h2>💾 localStorage Data</h2>
+            <button onclick="showAllData()">Show All Data</button>
+            <button onclick="exportData()">Export Data</button>
+            <pre id="data-display">Click "Show All Data" to view...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Storage keys
+        const STORAGE_KEYS = {
+            RIDE_BOOKINGS: 'carpool_ride_bookings',
+            RIDE_BIDS: 'carpool_ride_bids',
+            DRIVER_PROFILES: 'carpool_driver_profiles',
+            DRIVER_AVAILABILITY: 'carpool_driver_availability',
+            BOOKING_PARTICIPANTS: 'carpool_booking_participants',
+            INITIALIZED: 'carpool_initialized'
+        };
+
+        // Get stats
+        function getStats() {
+            const stats = {
+                initialized: localStorage.getItem(STORAGE_KEYS.INITIALIZED) === 'true',
+                bookings: { total: 0, pending: 0, accepted: 0, completed: 0 },
+                bids: { total: 0, pending: 0, accepted: 0, rejected: 0 },
+                drivers: { total: 0, available: 0 },
+                participants: 0
+            };
+
+            try {
+                const bookings = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BOOKINGS) || '[]');
+                stats.bookings.total = bookings.length;
+                stats.bookings.pending = bookings.filter(b => b.status === 'pending').length;
+                stats.bookings.accepted = bookings.filter(b => b.status === 'accepted').length;
+                stats.bookings.completed = bookings.filter(b => b.status === 'completed').length;
+
+                const bids = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BIDS) || '[]');
+                stats.bids.total = bids.length;
+                stats.bids.pending = bids.filter(b => b.status === 'pending').length;
+                stats.bids.accepted = bids.filter(b => b.status === 'accepted').length;
+                stats.bids.rejected = bids.filter(b => b.status === 'rejected').length;
+
+                const drivers = JSON.parse(localStorage.getItem(STORAGE_KEYS.DRIVER_PROFILES) || '[]');
+                stats.drivers.total = drivers.length;
+
+                const availability = JSON.parse(localStorage.getItem(STORAGE_KEYS.DRIVER_AVAILABILITY) || '[]');
+                stats.drivers.available = availability.filter(a => a.is_available).length;
+
+                const participants = JSON.parse(localStorage.getItem(STORAGE_KEYS.BOOKING_PARTICIPANTS) || '[]');
+                stats.participants = participants.length;
+            } catch (e) {
+                console.error('Error getting stats:', e);
+            }
+
+            return stats;
+        }
+
+        // Display system status
+        function displaySystemStatus() {
+            const stats = getStats();
+            const statusDiv = document.getElementById('system-status');
+            
+            let html = `
+                <div>
+                    ${stats.initialized 
+                        ? '<span class="status success">✅ System Initialized</span>' 
+                        : '<span class="status error">❌ System Not Initialized</span>'}
+                    
+                    ${stats.drivers.total > 0 
+                        ? '<span class="status success">✅ Drivers Loaded</span>' 
+                        : '<span class="status error">❌ No Drivers</span>'}
+                    
+                    ${stats.bookings.total > 0 
+                        ? '<span class="status success">✅ Bookings Present</span>' 
+                        : '<span class="status warning">⚠️ No Bookings</span>'}
+                    
+                    ${stats.bids.total > 0 
+                        ? '<span class="status success">✅ Bids Present</span>' 
+                        : '<span class="status info">ℹ️ No Bids</span>'}
+                </div>
+            `;
+            
+            statusDiv.innerHTML = html;
+        }
+
+        // Display statistics
+        function displayStats() {
+            const stats = getStats();
+            const statsGrid = document.getElementById('stats-grid');
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.bookings.total}</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.bookings.pending}</div>
+                    <div class="stat-label">Pending Rides</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.bids.total}</div>
+                    <div class="stat-label">Total Bids</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.drivers.total}</div>
+                    <div class="stat-label">Total Drivers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.drivers.available}</div>
+                    <div class="stat-label">Available Drivers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.participants}</div>
+                    <div class="stat-label">Participants</div>
+                </div>
+            `;
+        }
+
+        // Show all data
+        function showAllData() {
+            const data = {};
+            Object.entries(STORAGE_KEYS).forEach(([key, storageKey]) => {
+                const item = localStorage.getItem(storageKey);
+                if (item) {
+                    try {
+                        data[key] = JSON.parse(item);
+                    } catch {
+                        data[key] = item;
+                    }
+                }
+            });
+            
+            document.getElementById('data-display').textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Export data
+        function exportData() {
+            const data = {};
+            Object.entries(STORAGE_KEYS).forEach(([key, storageKey]) => {
+                const item = localStorage.getItem(storageKey);
+                if (item) {
+                    try {
+                        data[key] = JSON.parse(item);
+                    } catch {
+                        data[key] = item;
+                    }
+                }
+            });
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'carpool-data-export.json';
+            a.click();
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (!confirm('Are you sure you want to clear all carpool data? This cannot be undone.')) {
+                return;
+            }
+            
+            Object.values(STORAGE_KEYS).forEach(key => {
+                localStorage.removeItem(key);
+            });
+            
+            alert('All data cleared! Please reload the page to reinitialize.');
+            location.reload();
+        }
+
+        // Test functions
+        function addTestResult(message, passed) {
+            const resultsDiv = document.getElementById('test-results');
+            const testDiv = document.createElement('div');
+            testDiv.className = `test-result ${passed ? 'test-passed' : 'test-failed'}`;
+            testDiv.innerHTML = `${passed ? '✅' : '❌'} ${message}`;
+            resultsDiv.appendChild(testDiv);
+        }
+
+        function testCreateRide() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>Testing Create Ride...</h3>';
+            
+            try {
+                const bookings = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BOOKINGS) || '[]');
+                const initialCount = bookings.length;
+                
+                const newBooking = {
+                    booking_id: `BK_TEST_${Date.now()}`,
+                    pickup_location: 'Test Pickup',
+                    dropoff_location: 'Test Dropoff',
+                    required_time: new Date().toISOString(),
+                    booking_type: 'one_time',
+                    fixed_fare: 100,
+                    student_id: 'test_student',
+                    seats_required: 2,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+                
+                bookings.push(newBooking);
+                localStorage.setItem(STORAGE_KEYS.RIDE_BOOKINGS, JSON.stringify(bookings));
+                
+                const newBookings = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BOOKINGS));
+                
+                if (newBookings.length === initialCount + 1) {
+                    addTestResult('Ride created successfully', true);
+                    displayStats();
+                } else {
+                    addTestResult('Failed to create ride', false);
+                }
+            } catch (e) {
+                addTestResult(`Error creating ride: ${e.message}`, false);
+            }
+        }
+
+        function testPlaceBid() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>Testing Place Bid...</h3>';
+            
+            try {
+                const bookings = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BOOKINGS) || '[]');
+                if (bookings.length === 0) {
+                    addTestResult('No bookings available to bid on', false);
+                    return;
+                }
+                
+                const bids = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BIDS) || '[]');
+                const initialCount = bids.length;
+                
+                const newBid = {
+                    bid_id: `BID_TEST_${Date.now()}`,
+                    booking_id: bookings[0].booking_id,
+                    driver_id: 'DRV001',
+                    proposed_fare: bookings[0].fixed_fare * 0.9,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                };
+                
+                bids.push(newBid);
+                localStorage.setItem(STORAGE_KEYS.RIDE_BIDS, JSON.stringify(bids));
+                
+                const newBids = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BIDS));
+                
+                if (newBids.length === initialCount + 1) {
+                    addTestResult('Bid placed successfully', true);
+                    displayStats();
+                } else {
+                    addTestResult('Failed to place bid', false);
+                }
+            } catch (e) {
+                addTestResult(`Error placing bid: ${e.message}`, false);
+            }
+        }
+
+        function testAcceptBid() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>Testing Accept Bid...</h3>';
+            
+            try {
+                const bids = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BIDS) || '[]');
+                const pendingBids = bids.filter(b => b.status === 'pending');
+                
+                if (pendingBids.length === 0) {
+                    addTestResult('No pending bids to accept', false);
+                    return;
+                }
+                
+                const bidToAccept = pendingBids[0];
+                bidToAccept.status = 'accepted';
+                bidToAccept.accepted_at = new Date().toISOString();
+                
+                localStorage.setItem(STORAGE_KEYS.RIDE_BIDS, JSON.stringify(bids));
+                
+                const bookings = JSON.parse(localStorage.getItem(STORAGE_KEYS.RIDE_BOOKINGS) || '[]');
+                const booking = bookings.find(b => b.booking_id === bidToAccept.booking_id);
+                
+                if (booking) {
+                    booking.status = 'accepted';
+                    booking.accepted_bid_id = bidToAccept.bid_id;
+                    booking.assigned_driver_id = bidToAccept.driver_id;
+                    localStorage.setItem(STORAGE_KEYS.RIDE_BOOKINGS, JSON.stringify(bookings));
+                }
+                
+                addTestResult('Bid accepted successfully', true);
+                displayStats();
+            } catch (e) {
+                addTestResult(`Error accepting bid: ${e.message}`, false);
+            }
+        }
+
+        function runAllTests() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h3>Running All Tests...</h3>';
+            
+            setTimeout(() => testCreateRide(), 100);
+            setTimeout(() => testPlaceBid(), 500);
+            setTimeout(() => testAcceptBid(), 900);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            displaySystemStatus();
+            displayStats();
+            console.log('📊 Data Flow Test Page Loaded');
+            console.log('💡 Use the buttons above to test the system');
+        });
+
+        // Refresh every 2 seconds
+        setInterval(() => {
+            displaySystemStatus();
+            displayStats();
+        }, 2000);
+    </script>
+</body>
+</html>
