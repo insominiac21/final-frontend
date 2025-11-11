@@ -1,0 +1,29 @@
+[
+  {
+    "availability_id": "AVL001",
+    "driver_id": "DRV001",
+    "is_available": true,
+    "current_location": "Connaught Place",
+    "last_updated": "2024-11-11T09:00:00Z",
+    "available_seats": 3,
+    "preferred_routes": ["Connaught Place - Gurgaon", "Delhi - Noida"]
+  },
+  {
+    "availability_id": "AVL002",
+    "driver_id": "DRV002",
+    "is_available": true,
+    "current_location": "Dwarka",
+    "last_updated": "2024-11-11T09:15:00Z",
+    "available_seats": 5,
+    "preferred_routes": ["Dwarka - Gurgaon", "Delhi - Faridabad"]
+  },
+  {
+    "availability_id": "AVL003",
+    "driver_id": "DRV003",
+    "is_available": false,
+    "current_location": "Rohini",
+    "last_updated": "2024-11-11T08:45:00Z",
+    "available_seats": 2,
+    "preferred_routes": ["Rohini - Noida", "Delhi University - Greater Noida"]
+  }
+]

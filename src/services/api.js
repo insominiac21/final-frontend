@@ -279,83 +279,202 @@ export const complaintAPI = {
 
 // ==================== RIDE BOOKING APIs ====================
 
+import { carpoolAPI, bidAPI as carpoolBidAPI, driverAPI as carpoolDriverAPI, participantAPI } from './carpoolAPI';
+
 export const rideAPI = {
   getMyBookings: async (studentId) => {
-    return {
-      success: true,
-      data: [
-        {
-          booking_id: 'B001',
-          pickup_location: 'Campus',
-          dropoff_location: 'Railway Station',
-          required_time: '2025-11-07T08:00:00Z',
-          status: 'pending',
-          booking_type: 'one_time',
-          fixed_fare: 200,
-          student_id: studentId
-        }
-      ]
-    };
+    try {
+      const bookings = await carpoolAPI.getBookingsByStudent(studentId);
+      return {
+        success: true,
+        data: bookings
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   getAvailableBookings: async () => {
-    return {
-      success: true,
-      data: [
-        {
-          booking_id: 'B001',
-          pickup_location: 'Campus',
-          dropoff_location: 'Railway Station',
-          required_time: '2025-11-07T08:00:00Z',
-          status: 'pending',
-          booking_type: 'one_time',
-          fixed_fare: 200,
-          student_id: 'student_123'
-        },
-        {
-          booking_id: 'B002',
-          pickup_location: 'Airport',
-          dropoff_location: 'Campus',
-          required_time: '2025-11-10T15:00:00Z',
-          status: 'pending',
-          booking_type: 'one_time',
-          fixed_fare: 500,
-          student_id: 'student_456'
-        }
-      ]
-    };
+    try {
+      const bookings = await carpoolAPI.getAvailableBookingsForDrivers();
+      return {
+        success: true,
+        data: bookings
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getAllBookings: async () => {
+    try {
+      const bookings = await carpoolAPI.getAllBookings();
+      return {
+        success: true,
+        data: bookings
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  filterBookings: async (filters) => {
+    try {
+      const bookings = await carpoolAPI.filterBookings(filters);
+      return {
+        success: true,
+        data: bookings
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   createBooking: async (bookingData) => {
-    return {
-      success: true,
-      data: {
-        booking_id: 'B_' + Date.now(),
-        ...bookingData,
-        status: 'pending'
-      }
-    };
+    try {
+      const newBooking = await carpoolAPI.createBooking(bookingData);
+      return {
+        success: true,
+        data: newBooking
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   acceptBooking: async (bookingId, driverId) => {
-    return {
-      success: true,
-      data: {
-        booking_id: bookingId,
-        status: 'accepted',
-        driver_id: driverId
-      }
-    };
+    try {
+      const booking = await carpoolAPI.acceptBooking(bookingId, driverId);
+      return {
+        success: true,
+        data: booking
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   cancelBooking: async (bookingId) => {
-    return {
-      success: true,
-      data: {
-        booking_id: bookingId,
-        status: 'cancelled'
-      }
-    };
+    try {
+      const booking = await carpoolAPI.cancelBooking(bookingId);
+      return {
+        success: true,
+        data: booking
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  completeBooking: async (bookingId) => {
+    try {
+      const booking = await carpoolAPI.completeBooking(bookingId);
+      return {
+        success: true,
+        data: booking
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getBookingById: async (bookingId) => {
+    try {
+      const booking = await carpoolAPI.getBookingById(bookingId);
+      return {
+        success: true,
+        data: booking
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  joinRide: async (bookingId, studentId) => {
+    try {
+      const participant = await participantAPI.addParticipant(bookingId, studentId);
+      return {
+        success: true,
+        data: participant
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  leaveRide: async (bookingId, studentId) => {
+    try {
+      await participantAPI.removeParticipant(bookingId, studentId);
+      return {
+        success: true,
+        message: 'Left ride successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getParticipants: async (bookingId) => {
+    try {
+      const participants = await participantAPI.getParticipants(bookingId);
+      return {
+        success: true,
+        data: participants
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getJoinedRides: async (studentId) => {
+    try {
+      const participations = await participantAPI.getStudentParticipations(studentId);
+      return {
+        success: true,
+        data: participations
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 };
 
@@ -363,41 +482,67 @@ export const rideAPI = {
 
 export const bidAPI = {
   getBidsForBooking: async (bookingId) => {
-    return {
-      success: true,
-      data: [
-        {
-          bid_id: 'BID001',
-          booking_id: bookingId,
-          driver_id: 'driver_123',
-          proposed_fare: 180,
-          bid_status: 'proposed'
-        }
-      ]
-    };
+    try {
+      const bids = await carpoolBidAPI.getBidsForBooking(bookingId);
+      return {
+        success: true,
+        data: bids
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   placeBid: async (bookingId, driverId, proposedFare) => {
-    return {
-      success: true,
-      data: {
-        bid_id: 'BID_' + Date.now(),
+    try {
+      const bid = await carpoolBidAPI.placeBid({
         booking_id: bookingId,
         driver_id: driverId,
-        proposed_fare: proposedFare,
-        bid_status: 'proposed'
-      }
-    };
+        proposed_fare: proposedFare
+      });
+      return {
+        success: true,
+        data: bid
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   acceptBid: async (bidId) => {
-    return {
-      success: true,
-      data: {
-        bid_id: bidId,
-        bid_status: 'accepted'
-      }
-    };
+    try {
+      const bid = await carpoolBidAPI.acceptBid(bidId);
+      return {
+        success: true,
+        data: bid
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  rejectBid: async (bidId) => {
+    try {
+      const bid = await carpoolBidAPI.rejectBid(bidId);
+      return {
+        success: true,
+        data: bid
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 };
 
@@ -521,40 +666,93 @@ export const messTimetableAPI = {
 
 export const driverAPI = {
   getDriverProfile: async (driverId) => {
-    return {
-      success: true,
-      data: {
-        driver_id: driverId,
-        vehicle_model: 'Toyota Innova',
-        vehicle_number: 'MH 12 AB 1234',
-        license_details: 'DL1234567890'
-      }
-    };
+    try {
+      const driver = await carpoolDriverAPI.getDriverById(driverId);
+      return {
+        success: true,
+        data: driver
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getAllDrivers: async () => {
+    try {
+      const drivers = await carpoolDriverAPI.getAllDrivers();
+      return {
+        success: true,
+        data: drivers
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getOnlineDrivers: async () => {
+    try {
+      const drivers = await carpoolDriverAPI.getOnlineDrivers();
+      return {
+        success: true,
+        data: drivers
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   updateAvailability: async (driverId, isOnline, latitude = null, longitude = null) => {
-    return {
-      success: true,
-      data: {
-        avail_id: 'AVAIL_' + Date.now(),
-        driver_id: driverId,
-        is_online: isOnline,
-        current_latitude: latitude,
-        current_longitude: longitude
-      }
-    };
+    try {
+      const availability = await carpoolDriverAPI.updateDriverAvailability(driverId, isOnline, latitude, longitude);
+      return {
+        success: true,
+        data: availability
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   },
 
   getDriverStats: async (driverId) => {
-    return {
-      success: true,
-      data: {
-        total_rides: 142,
-        pending_requests: 5,
-        confirmed_today: 3,
-        rating: 4.7
-      }
-    };
+    try {
+      const stats = await carpoolDriverAPI.getDriverStats(driverId);
+      return {
+        success: true,
+        data: stats
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  getDriverBookings: async (driverId, status = null) => {
+    try {
+      const bookings = await carpoolDriverAPI.getDriverBookings(driverId, status);
+      return {
+        success: true,
+        data: bookings
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 };
 
